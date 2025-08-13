@@ -1,548 +1,462 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <title>Bar San Luigi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root { --brand:#3f51b5; --brand-dark:#283593; --brand-darker:#1a237e; --ok:#4caf50; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: Arial, sans-serif; background:#f3f3f3; color:#222; }
-  header { background:var(--brand); color:#fff; text-align:center; padding:10px 12px; }
-  header img { max-height:60px; display:block; margin:0 auto 6px; }
-  nav { display:flex; background:var(--brand-dark); }
-  nav button { flex:1; padding:12px 10px; border:0; background:var(--brand-dark); color:#fff; font-size:16px; cursor:pointer; }
-  nav button.active { background:var(--brand-darker); }
-  .page { display:none; padding:14px; }
-  .page.active { display:block; }
-
-  /* Home */
-  .products { display:flex; flex-wrap:wrap; gap:10px; }
-  .prod-btn {
-    flex:1 0 23%;
-    min-width:140px;
-    padding:16px 12px;
-    border:0; border-radius:6px;
-    color:#fff; font-weight:bold; font-size:16px; cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,.1);
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f2f2f2;
   }
-  .prod-caption { display:block; font-size:12px; opacity:.9; margin-top:6px; }
-  .cart { background:#fff; margin-top:14px; padding:12px; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
-  .cart table { width:100%; border-collapse:collapse; }
-  .cart th,.cart td { border-bottom:1px solid #eee; padding:8px; text-align:center; }
-  .cart td:first-child,.cart th:first-child { text-align:left; }
-  .cart .rmv { padding:4px 10px; border:0; border-radius:4px; cursor:pointer; }
-  .total { text-align:right; font-size:18px; font-weight:bold; margin-top:8px; }
-  .print { width:100%; margin-top:10px; padding:12px; border:0; border-radius:6px; background:var(--ok); color:#fff; font-size:16px; cursor:pointer; }
-
-  /* Settings */
-  .panel { background:#fff; padding:12px; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,.06); margin-bottom:14px; }
-  .row { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
-  .row-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
-  .row-4 { display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:10px; }
-  input, select { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; }
-  .btn { padding:9px 12px; border:0; border-radius:6px; background:var(--brand); color:#fff; cursor:pointer; }
-  .btn-ghost { padding:6px 10px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer; }
-  ul { list-style:none; padding:0; margin:8px 0 0; }
-  li.item { display:flex; align-items:center; justify-content:space-between; padding:8px; border:1px solid #eee; border-radius:6px; margin-bottom:6px; background:#fafafa; }
-  .tag { font-size:12px; padding:2px 6px; border-radius:999px; border:1px solid #ddd; background:#fff; margin-left:6px; }
-  .muted { opacity:.7; }
-
-  /* History */
-  #historyTable { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.06); }
-  #historyTable th,#historyTable td { border-bottom:1px solid #eee; padding:8px; text-align:left; }
-  .actions { display:flex; gap:8px; align-items:center; }
-
-  /* Print */
-  @media print {
-    body { background:#fff; }
+  header {
+    background: #333;
+    color: white;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header img {
+    max-height: 50px;
+  }
+  nav {
+    display: flex;
+    background: #444;
+  }
+  nav button {
+    flex: 1;
+    padding: 10px;
+    background: #444;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  nav button.active {
+    background: #666;
+  }
+  .page {
+    display: none;
+    padding: 10px;
+  }
+  .page.active {
+    display: block;
+  }
+  .product-btn {
+    display: inline-block;
+    padding: 10px;
+    margin: 5px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  table, th, td {
+    border: 1px solid #ddd;
+    padding: 5px;
+  }
+  #cart-table td button {
+    padding: 3px 6px;
   }
 </style>
 </head>
 <body>
-  <header>
-    <img id="barLogo" alt="Logo Bar San Luigi" />
-    <h1>Bar San Luigi</h1>
-  </header>
+<header>
+  <img id="bar-logo" src="" alt="Logo">
+  <h1>Bar San Luigi</h1>
+</header>
+<nav>
+  <button data-page="home" class="active">Home</button>
+  <button data-page="settings">Impostazioni</button>
+  <button data-page="history">Storico</button>
+</nav>
 
-  <nav>
-    <button class="active" data-page="home">Home</button>
-    <button data-page="settings">Impostazioni</button>
-    <button data-page="history">Storico ordini</button>
-  </nav>
+<!-- PAGINA HOME -->
+<div id="home" class="page active">
+  <div id="products-container"></div>
+  <h2>Carrello</h2>
+  <table id="cart-table">
+    <thead>
+      <tr><th>Prodotto</th><th>Q.tà</th><th>Prezzo</th><th>Azioni</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h3>Totale: €<span id="cart-total">0.00</span></h3>
+  <button id="print-send">Stampa e Salva</button>
+</div>
 
-  <!-- HOME -->
-  <section id="home" class="page active">
-    <div id="productsContainer" class="products"></div>
+<!-- PAGINA IMPOSTAZIONI -->
+<div id="settings" class="page">
+  <div id="login-section">
+    <input type="password" id="settings-password" placeholder="Password">
+    <button id="login-btn">Accedi</button>
+  </div>
+  <div id="settings-content" style="display:none;">
+    <h2>Logo</h2>
+    <input type="file" id="logo-input">
+    <button id="upload-logo-btn">Carica Logo</button>
 
-    <div class="cart">
-      <table>
-        <thead>
-          <tr><th>Prodotto</th><th>Qtà</th><th>Prezzo</th><th></th></tr>
-        </thead>
-        <tbody id="cartBody"></tbody>
-      </table>
-      <div class="total">Totale: € <span id="totalPrice">0.00</span></div>
-      <button id="printAndSend" class="print">Stampa e invia</button>
-    </div>
-  </section>
+    <h2>Categorie</h2>
+    <input id="category-name" placeholder="Nome categoria">
+    <input type="color" id="category-color" value="#ff0000">
+    <input type="number" id="category-order" placeholder="Ordine">
+    <button id="add-category-btn">Aggiungi Categoria</button>
+    <ul id="categories-list"></ul>
 
-  <!-- IMPOSTAZIONI -->
-  <section id="settings" class="page">
-    <div id="loginBox" class="panel">
-      <div class="actions">
-        <input type="password" id="settingsPassword" placeholder="Password" />
-        <button id="loginBtn" class="btn">Accedi</button>
-        <span class="muted">Default: <b>admin</b></span>
-      </div>
-    </div>
+    <h2>Prodotti</h2>
+    <input id="product-name" placeholder="Nome prodotto">
+    <input type="number" step="0.01" id="product-price" placeholder="Prezzo">
+    <input type="number" id="product-stock" placeholder="Stock (opzionale)">
+    <select id="product-category"></select>
+    <button id="add-product-btn">Aggiungi Prodotto</button>
+    <ul id="products-list"></ul>
+  </div>
+</div>
 
-    <div id="settingsContent" style="display:none">
-      <div class="panel">
-        <h2>Categorie</h2>
-        <div class="row-3">
-          <input id="catName" placeholder="Nome categoria" />
-          <input id="catColor" type="color" value="#3f51b5" />
-          <input id="catOrder" type="number" placeholder="Ordine esposizione" />
-        </div>
-        <div class="actions" style="margin-top:8px">
-          <button id="addCategory" class="btn">Aggiungi categoria</button>
-        </div>
-        <ul id="categoriesList"></ul>
-      </div>
+<!-- PAGINA STORICO -->
+<div id="history" class="page">
+  <h2>Storico Ordini</h2>
+  <input type="date" id="history-date">
+  <button id="load-history-btn">Carica Storico</button>
+  <button id="export-csv-btn">Esporta CSV</button>
+  <table id="history-table">
+    <thead><tr><th>Prodotto</th><th>Q.tà</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <h3>Totale Giornaliero: <span id="history-total">€ 0.00</span></h3>
+</div>
 
-      <div class="panel">
-        <h2>Prodotti</h2>
-        <div class="row-4">
-          <input id="prodName" placeholder="Nome prodotto" />
-          <input id="prodPrice" type="number" step="0.01" placeholder="Prezzo" />
-          <input id="prodQty" type="number" placeholder="Quantità (vuoto = illimitata)" />
-          <select id="prodCategory"></select>
-        </div>
-        <div class="actions" style="margin-top:8px">
-          <label class="actions"><input id="prodEnabled" type="checkbox" checked /> Abilitato</label>
-          <button id="addProduct" class="btn">Aggiungi prodotto</button>
-        </div>
-        <ul id="productsList"></ul>
-      </div>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js"></script>
+<script src="app.js"></script>
+// ==== Firebase Config ====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
 
-      <div class="panel">
-        <h2>Logo</h2>
-        <div class="actions">
-          <input id="logoUpload" type="file" accept="image/*" />
-          <button id="clearLogoBtn" class="btn-ghost">Rimuovi logo</button>
-        </div>
-      </div>
-    </div>
-  </section>
+const firebaseConfig = {
+  apiKey: "AIzaSyDNtqjDfxsV8TccejiE5Clffd1GvajryiU",
+  authDomain: "bar-san-luigi.firebaseapp.com",
+  projectId: "bar-san-luigi",
+  storageBucket: "bar-san-luigi.firebasestorage.app",
+  messagingSenderId: "26384635672",
+  appId: "1:26384635672:web:672d98a954aa7e5dcaf06d"
+};
 
-  <!-- STORICO -->
-  <section id="history" class="page">
-    <div class="panel">
-      <h2>Storico ordini</h2>
-      <div class="actions">
-        <input id="historyDate" type="date" />
-        <button id="loadHistory" class="btn">Vai!</button>
-        <button id="exportCSV" class="btn-ghost">Esporta CSV</button>
-      </div>
-    </div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-    <table id="historyTable">
-      <thead><tr><th>Prodotto</th><th>Qtà</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <div class="total" style="margin:8px 0 0">Totale incasso: € <span id="historyTotal">0.00</span></div>
-  </section>
+let logoURL = "";
+let categories = [];
+let products = [];
+let cart = [];
+let ordersCollection = collection(db, "orders");
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
-      deleteDoc, updateDoc, query, where, orderBy, runTransaction, increment, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import {
-      getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+// ==== Navigazione a schede ====
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(btn.dataset.page).classList.add("active");
+  });
+});
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDNtqjDfxsV8TccejiE5Clffd1GvajryiU",
-      authDomain: "bar-san-luigi.firebaseapp.com",
-      projectId: "bar-san-luigi",
-      storageBucket: "bar-san-luigi.firebasestorage.app",
-      messagingSenderId: "26384635672",
-      appId: "1:26384635672:web:672d98a954aa7e5dcaf06d"
-    };
+// ==== Caricamento Logo ====
+async function loadLogo() {
+  const docRef = doc(db, "config", "logo");
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    logoURL = snap.data().url;
+    document.getElementById("bar-logo").src = logoURL;
+  }
+}
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+document.getElementById("upload-logo-btn").addEventListener("click", async () => {
+  const file = document.getElementById("logo-input").files[0];
+  if (!file) return;
+  const storageRef = ref(storage, "logo.png");
+  await uploadBytes(storageRef, file);
+  logoURL = await getDownloadURL(storageRef);
+  await setDoc(doc(db, "config", "logo"), { url: logoURL });
+  document.getElementById("bar-logo").src = logoURL;
+});
 
-    // ---- Stato
-    let categories = [];   // {id,name,color,order}
-    let products = [];     // {id,name,price,qty,categoryId,enabled}
-    let cart = [];
+// ==== Login Impostazioni ====
+document.getElementById("login-btn").addEventListener("click", () => {
+  const pass = document.getElementById("settings-password").value;
+  if (pass === "admin") {
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("settings-content").style.display = "block";
+  } else {
+    alert("Password errata");
+  }
+});
 
-    // ---- Utils
-    const byCatOrder = (a,b) => {
-      const ca = categories.find(c=>c.id===a.categoryId);
-      const cb = categories.find(c=>c.id===b.categoryId);
-      return (ca?.order||0) - (cb?.order||0) || a.name.localeCompare(b.name);
-    };
-    const euros = v => (Number(v)||0).toFixed(2);
+// ==== Gestione Categorie ====
+async function loadCategories() {
+  const snap = await getDocs(collection(db, "categories"));
+  categories = [];
+  snap.forEach(docu => {
+    categories.push({ id: docu.id, ...docu.data() });
+  });
+  categories.sort((a, b) => a.order - b.order);
+  renderCategories();
+  renderCategoryOptions();
+  renderProductsHome();
+}
 
-    // ---- Logo
-    async function loadLogo() {
-      try {
-        const snap = await getDoc(doc(db, "config", "logo"));
-        const url = snap.exists() ? snap.data().url : null;
-        if (url) document.getElementById("barLogo").src = url;
-      } catch (e) { console.error(e); }
-    }
-    document.getElementById("logoUpload").onchange = async (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      try {
-        const refPath = storageRef(storage, "logos/barLogo.jpg");
-        await uploadBytes(refPath, f);
-        const url = await getDownloadURL(refPath);
-        await setDoc(doc(db,"config","logo"), { url });
-        document.getElementById("barLogo").src = url;
-        alert("Logo caricato.");
-      } catch(err){ console.error(err); alert("Errore upload logo."); }
-    };
-    document.getElementById("clearLogoBtn").onclick = async ()=>{
-      try {
-        const refPath = storageRef(storage, "logos/barLogo.jpg");
-        await deleteObject(refPath);
-        await setDoc(doc(db,"config","logo"), { url: null });
-        document.getElementById("barLogo").src = "";
-        alert("Logo rimosso.");
-      } catch(err){ console.error(err); alert("Errore rimozione logo."); }
-    };
+function renderCategories() {
+  const list = document.getElementById("categories-list");
+  list.innerHTML = "";
+  categories.forEach(cat => {
+    const li = document.createElement("li");
+    li.innerHTML = `${cat.name} <button onclick="editCategory('${cat.id}')">Modifica</button> <button onclick="deleteCategory('${cat.id}')">Elimina</button>`;
+    list.appendChild(li);
+  });
+}
 
-    // ---- Categorie (CRUD)
-    async function loadCategories() {
-      const qy = query(collection(db,"categories"), orderBy("order","asc"));
-      const snap = await getDocs(qy);
-      categories = snap.docs.map(d=>({id:d.id, ...d.data()}));
-      renderCategoriesSettings();
-      renderCategoryOptions();
-    }
-    function renderCategoriesSettings() {
-      const ul = document.getElementById("categoriesList");
-      ul.innerHTML = "";
-      categories.forEach(c=>{
-        const li = document.createElement("li");
-        li.className = "item";
-        li.innerHTML = `
-          <div><b style="color:${c.color}">${c.name}</b> <span class="tag">ordine ${c.order||0}</span></div>
-          <div class="actions">
-            <button class="btn-ghost" onclick="editCategory('${c.id}')">Modifica</button>
-            <button class="btn-ghost" onclick="deleteCategory('${c.id}')">Elimina</button>
-          </div>`;
-        ul.appendChild(li);
-      });
-    }
-    function renderCategoryOptions() {
-      const sel = document.getElementById("prodCategory");
-      sel.innerHTML = "";
-      categories.forEach(c=>{
-        const opt = document.createElement("option");
-        opt.value = c.id; opt.textContent = c.name;
-        sel.appendChild(opt);
-      });
-    }
-    document.getElementById("addCategory").onclick = async ()=>{
-      const name = document.getElementById("catName").value.trim();
-      const color = document.getElementById("catColor").value;
-      const order = parseInt(document.getElementById("catOrder").value)||0;
-      if(!name){ alert("Inserisci un nome categoria."); return; }
-      await addDoc(collection(db,"categories"), {name,color,order});
-      document.getElementById("catName").value="";
-      document.getElementById("catOrder").value="";
-      await loadCategories(); renderProductsHome();
-    };
-    window.editCategory = async (id)=>{
-      const c = categories.find(x=>x.id===id); if(!c) return;
-      const name = prompt("Nome categoria:", c.name); if(!name) return;
-      const color = prompt("Colore HEX (#...):", c.color)||c.color;
-      const order = parseInt(prompt("Ordine di esposizione:", c.order))||0;
-      await updateDoc(doc(db,"categories",id), {name,color,order});
-      await loadCategories(); renderProductsHome();
-    };
-    window.deleteCategory = async (id)=>{
-      if(!confirm("Eliminare la categoria? I prodotti resteranno ma senza colore/ordine.")) return;
-      await deleteDoc(doc(db,"categories",id));
-      await loadCategories(); renderProductsHome();
-    };
+function renderCategoryOptions() {
+  const select = document.getElementById("product-category");
+  select.innerHTML = "";
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    select.appendChild(opt);
+  });
+}
 
-    // ---- Prodotti (CRUD + toggle)
-    async function loadProducts() {
-      const snap = await getDocs(collection(db,"products"));
-      products = snap.docs.map(d=>{
-        const data = d.data();
-        return { id:d.id, enabled: data.enabled!==false, ...data };
-      });
-      renderProductsSettings();
-    }
-    function renderProductsSettings() {
-      const ul = document.getElementById("productsList");
-      ul.innerHTML = "";
-      // Mostra per categoria per ordine
-      const sorted = [...products].sort(byCatOrder);
-      sorted.forEach(p=>{
-        const cat = categories.find(c=>c.id===p.categoryId);
-        const li = document.createElement("li");
-        li.className = "item";
-        const qtyStr = (p.qty===null || p.qty===undefined) ? "∞" : p.qty;
-        li.innerHTML = `
-          <div>
-            <b>${p.name}</b> <span class="muted">€${euros(p.price)}</span>
-            <span class="tag">${cat ? cat.name : "Senza categoria"}</span>
-            <span class="tag">Qtà: ${qtyStr}</span>
-            <span class="tag">${p.enabled ? "Attivo ✅" : "Disattivo 🚫"}</span>
-          </div>
-          <div class="actions">
-            <button class="btn-ghost" onclick="editProduct('${p.id}')">Modifica</button>
-            <button class="btn-ghost" onclick="toggleProduct('${p.id}')">${p.enabled?"Disattiva":"Attiva"}</button>
-            <button class="btn-ghost" onclick="deleteProduct('${p.id}')">Elimina</button>
-          </div>`;
-        ul.appendChild(li);
-      });
-    }
-    function renderProductsHome() {
-      const container = document.getElementById("productsContainer");
-      container.innerHTML = "";
-      // Itera le categorie in ordine e per ciascuna butta i prodotti abilitati
-      categories.forEach(cat=>{
-        const prods = products
-          .filter(p=>p.categoryId===cat.id && p.enabled)
-          .sort((a,b)=> a.name.localeCompare(b.name));
-        prods.forEach(p=>{
-          const btn = document.createElement("button");
-          btn.className = "prod-btn";
-          btn.style.background = cat.color || "#777";
-          const qtyStr = (p.qty===null || p.qty===undefined) ? "" : `<span class="prod-caption">Rimanenti: ${p.qty}</span>`;
-          btn.innerHTML = `${p.name}${qtyStr}`;
-          btn.onclick = ()=> addToCart(p);
-          container.appendChild(btn);
-        });
-      });
-    }
-    document.getElementById("addProduct").onclick = async ()=>{
-      const name = document.getElementById("prodName").value.trim();
-      const price = parseFloat(document.getElementById("prodPrice").value);
-      const qtyRaw = document.getElementById("prodQty").value;
-      const qty = (qtyRaw==="" ? null : parseInt(qtyRaw));
-      const categoryId = document.getElementById("prodCategory").value;
-      const enabled = document.getElementById("prodEnabled").checked;
-      if(!name || isNaN(price)){ alert("Nome e prezzo sono obbligatori."); return; }
-      await addDoc(collection(db,"products"), { name, price, qty, categoryId, enabled });
-      document.getElementById("prodName").value = "";
-      document.getElementById("prodPrice").value = "";
-      document.getElementById("prodQty").value = "";
-      document.getElementById("prodEnabled").checked = true;
-      await loadProducts(); renderProductsHome();
-    };
-    window.editProduct = async (id)=>{
-      const p = products.find(x=>x.id===id); if(!p) return;
-      const name = prompt("Nome prodotto:", p.name); if(!name) return;
-      const price = parseFloat(prompt("Prezzo:", p.price)); if(isNaN(price)) return;
-      const qtyPrompt = prompt("Quantità (vuoto=illimitata):", (p.qty ?? "").toString());
-      const qty = (qtyPrompt==="" ? null : parseInt(qtyPrompt));
-      // cambio categoria via select testuale: mostra elenco id->nome
-      const catList = categories.map(c=>`${c.id} = ${c.name}`).join("\n");
-      const categoryId = prompt("ID categoria (scegli tra):\n"+catList, p.categoryId) || p.categoryId;
-      await updateDoc(doc(db,"products",id), { name, price, qty, categoryId });
-      await loadProducts(); renderProductsHome();
-    };
-    window.toggleProduct = async (id)=>{
-      const p = products.find(x=>x.id===id); if(!p) return;
-      await updateDoc(doc(db,"products",id), { enabled: !p.enabled });
-      await loadProducts(); renderProductsHome();
-    };
-    window.deleteProduct = async (id)=>{
-      if(!confirm("Eliminare questo prodotto?")) return;
-      await deleteDoc(doc(db,"products",id));
-      await loadProducts(); renderProductsHome();
-    };
+document.getElementById("add-category-btn").addEventListener("click", async () => {
+  const name = document.getElementById("category-name").value;
+  const color = document.getElementById("category-color").value;
+  const order = parseInt(document.getElementById("category-order").value) || 0;
+  if (!name) return;
+  await addDoc(collection(db, "categories"), { name, color, order });
+  loadCategories();
+});
 
-    // ---- Carrello
-    function inCartQty(productId) {
-      return cart.filter(i=>i.id===productId).reduce((s,i)=>s+i.qty,0);
-    }
-    function addToCart(prod) {
-      // rispetta la giacenza se definita
-      if (prod.qty !== null && prod.qty !== undefined) {
-        const already = inCartQty(prod.id);
-        if (already + 1 > prod.qty) { alert("Giacenza insufficiente."); return; }
-      }
-      const found = cart.find(i=>i.id===prod.id);
-      if(found) found.qty++; else cart.push({ id:prod.id, name:prod.name, price:prod.price, qty:1 });
-      renderCart();
-    }
-    function renderCart() {
-      const tbody = document.getElementById("cartBody");
-      tbody.innerHTML = "";
-      let total = 0;
-      cart.forEach((it,idx)=>{
-        total += it.price * it.qty;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${it.name}</td>
-          <td>${it.qty}</td>
-          <td>€ ${euros(it.price * it.qty)}</td>
-          <td><button class="rmv btn-ghost" onclick="removeFromCart(${idx})">-</button></td>`;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("totalPrice").textContent = euros(total);
-    }
-    window.removeFromCart = (idx)=>{
-      cart[idx].qty--;
-      if (cart[idx].qty <= 0) cart.splice(idx,1);
-      renderCart();
-    };
+window.editCategory = async function (id) {
+  const cat = categories.find(c => c.id === id);
+  if (!cat) return;
+  const newName = prompt("Nuovo nome:", cat.name);
+  if (newName === null) return;
+  const newColor = prompt("Nuovo colore:", cat.color);
+  const newOrder = parseInt(prompt("Nuovo ordine:", cat.order)) || 0;
+  await updateDoc(doc(db, "categories", id), { name: newName, color: newColor, order: newOrder });
+  loadCategories();
+};
 
-    // ---- Numero progressivo
-    async function nextOrderNumber() {
-      const ref = doc(db,"counters","orders");
-      const orderNo = await runTransaction(db, async (tx)=>{
-        const snap = await tx.get(ref);
-        if(!snap.exists()) {
-          tx.set(ref, { seq: 1 });
-          return 1;
-        } else {
-          const next = (snap.data().seq||0) + 1;
-          tx.update(ref, { seq: next });
-          return next;
-        }
-      });
-      return orderNo;
-    }
+window.deleteCategory = async function (id) {
+  if (!confirm("Eliminare categoria?")) return;
+  await deleteDoc(doc(db, "categories", id));
+  loadCategories();
+};
 
-    // ---- Stampa + Salvataggio ordine + Scarico magazzino
-    document.getElementById("printAndSend").onclick = async ()=>{
-      if(cart.length===0){ alert("Carrello vuoto."); return; }
-      // determina numero progressivo
-      const orderNo = await nextOrderNumber();
-      const order = {
-        number: orderNo,
-        date: serverTimestamp(),
-        items: cart.map(c=>({ name:c.name, qty:c.qty, price:c.price })),
-        total: cart.reduce((s,c)=>s + c.price*c.qty, 0)
-      };
+// ==== Gestione Prodotti ====
+async function loadProducts() {
+  const snap = await getDocs(collection(db, "products"));
+  products = [];
+  snap.forEach(docu => {
+    products.push({ id: docu.id, ...docu.data() });
+  });
+  renderProductsList();
+  renderProductsHome();
+}
 
-      // PREPARA STAMPA
-      const logoSrc = document.getElementById("barLogo").src || "";
-      const dt = new Date().toLocaleString();
-      let html = `
-        <div style="width:80mm;font-family:monospace;">
-          <div style="text-align:center">
-            ${logoSrc ? `<img src="${logoSrc}" style="max-width:60mm;max-height:40mm" />` : ""}
-            <h2 style="margin:6px 0">Bar San Luigi</h2>
-            <div>${dt}</div>
-            <div>Ordine #${orderNo}</div>
-          </div>
-          <hr/>
-      `;
-      order.items.forEach(it=>{
-        html += `
-          <div style="display:flex;justify-content:space-between;">
-            <span>${it.qty} x ${it.name}</span>
-            <span>€ ${euros(it.price*it.qty)}</span>
-          </div>`;
-      });
-      html += `<hr/><div style="text-align:right;font-weight:bold">TOTALE: € ${euros(order.total)}</div></div>`;
+function renderProductsList() {
+  const list = document.getElementById("products-list");
+  list.innerHTML = "";
+  products.forEach(prod => {
+    const li = document.createElement("li");
+    li.innerHTML = `${prod.name} (€${prod.price.toFixed(2)}) [${prod.active ? "Attivo" : "Disattivo"}] 
+      <button onclick="toggleProduct('${prod.id}', ${!prod.active})">${prod.active ? "Disattiva" : "Attiva"}</button>
+      <button onclick="editProduct('${prod.id}')">Modifica</button>
+      <button onclick="deleteProduct('${prod.id}')">Elimina</button>`;
+    list.appendChild(li);
+  });
+}
 
-      const w = window.open("", "PRINT", "width=420,height=640");
-      w.document.write(html);
-      w.document.close();
-      w.focus();
-      w.print();
-      w.close();
+document.getElementById("add-product-btn").addEventListener("click", async () => {
+  const name = document.getElementById("product-name").value;
+  const price = parseFloat(document.getElementById("product-price").value) || 0;
+  const stock = parseInt(document.getElementById("product-stock").value) || null;
+  const category = document.getElementById("product-category").value;
+  if (!name) return;
+  await addDoc(collection(db, "products"), { name, price, stock, category, active: true });
+  loadProducts();
+});
 
-      // SALVA ORDINE
-      await addDoc(collection(db,"orders"), order);
+window.toggleProduct = async function (id, active) {
+  await updateDoc(doc(db, "products", id), { active });
+  loadProducts();
+};
 
-      // SCALA MAGAZZINO SE SERVE
-      // (usa increment negativo)
-      for (const line of cart) {
-        const prod = products.find(p=>p.id===line.id);
-        if (prod && prod.qty !== null && prod.qty !== undefined) {
-          const ref = doc(db,"products", prod.id);
-          await updateDoc(ref, { qty: increment(-line.qty) });
-        }
-      }
+window.editProduct = async function (id) {
+  const prod = products.find(p => p.id === id);
+  if (!prod) return;
+  const newName = prompt("Nuovo nome:", prod.name);
+  if (newName === null) return;
+  const newPrice = parseFloat(prompt("Nuovo prezzo:", prod.price)) || 0;
+  const newStock = parseInt(prompt("Nuovo stock:", prod.stock || "")) || null;
+  await updateDoc(doc(db, "products", id), { name: newName, price: newPrice, stock: newStock });
+  loadProducts();
+};
 
-      // Pulisci cart e ricarica prodotti (così si aggiornano le giacenze visibili)
-      cart = [];
-      renderCart();
-      await loadProducts();
-      renderProductsHome();
-    };
+window.deleteProduct = async function (id) {
+  if (!confirm("Eliminare prodotto?")) return;
+  await deleteDoc(doc(db, "products", id));
+  loadProducts();
+};
 
-    // ---- Storico
-    document.getElementById("loadHistory").onclick = async ()=>{
-      const dateStr = document.getElementById("historyDate").value;
-      if(!dateStr){ alert("Seleziona una data."); return; }
-      const start = new Date(dateStr+"T00:00:00");
-      const end   = new Date(dateStr+"T23:59:59");
-      const qy = query(collection(db,"orders"), where("date", ">=", start), where("date","<=", end));
-      const snap = await getDocs(qy);
-      const summary = {};
-      let total = 0;
-      snap.forEach(d=>{
-        const o = d.data();
-        (o.items||[]).forEach(it=>{
-          summary[it.name] = (summary[it.name]||0) + (it.qty||0);
-          total += (it.price||0) * (it.qty||0);
-        });
-      });
-      const tbody = document.querySelector("#historyTable tbody");
-      tbody.innerHTML = "";
-      Object.entries(summary).forEach(([name,qty])=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${name}</td><td>${qty}</td>`;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("historyTotal").textContent = euros(total);
-    };
-
-    document.getElementById("exportCSV").onclick = ()=>{
-      const rows = [["Prodotto","Quantità"]];
-      document.querySelectorAll("#historyTable tbody tr").forEach(tr=>{
-        const tds = tr.querySelectorAll("td");
-        rows.push([tds[0].textContent, tds[1].textContent]);
-      });
-      const csv = rows.map(r=>r.join(",")).join("\n");
-      const blob = new Blob([csv], {type:"text/csv"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "storico.csv"; a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    // ---- Login Impostazioni
-    document.getElementById("loginBtn").onclick = ()=>{
-      if (document.getElementById("settingsPassword").value === "admin") {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("settingsContent").style.display = "block";
-      } else { alert("Password errata"); }
-    };
-
-    // ---- Navigazione
-    document.querySelectorAll("nav button").forEach(btn=>{
-      btn.onclick = ()=>{
-        document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-        document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-        document.getElementById(btn.dataset.page).classList.add("active");
-      };
+// ==== Home — Bottoni Prodotti ====
+function renderProductsHome() {
+  const container = document.getElementById("products-container");
+  container.innerHTML = "";
+  categories.forEach(cat => {
+    const catProducts = products.filter(p => p.category === cat.id && p.active);
+    catProducts.forEach(prod => {
+      const btn = document.createElement("button");
+      btn.className = "product-btn";
+      btn.style.background = cat.color;
+      btn.textContent = `${prod.name} (€${prod.price.toFixed(2)})`;
+      btn.onclick = () => addToCart(prod);
+      container.appendChild(btn);
     });
+  });
+}
 
-    // ---- Init: carica tutto & poi render Home
-    await Promise.all([loadLogo(), loadCategories(), loadProducts()]);
-    renderProductsHome();
-  </script>
+// ==== Carrello ====
+function addToCart(prod) {
+  const existing = cart.find(item => item.id === prod.id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ ...prod, qty: 1 });
+  }
+  renderCart();
+}
+
+function renderCart() {
+  const tbody = document.querySelector("#cart-table tbody");
+  tbody.innerHTML = "";
+  let total = 0;
+  cart.forEach((item, idx) => {
+    total += item.price * item.qty;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${item.name}</td><td>${item.qty}</td><td>€${(item.price * item.qty).toFixed(2)}</td>
+      <td><button onclick="removeFromCart(${idx})">-</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("cart-total").textContent = total.toFixed(2);
+}
+
+window.removeFromCart = function (idx) {
+  cart.splice(idx, 1);
+  renderCart();
+};
+
+// ==== Stampa & Salva ====
+document.getElementById("print-send").addEventListener("click", async () => {
+  if (cart.length === 0) return;
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const order = { items: cart, total, date: new Date().toISOString() };
+  await addDoc(ordersCollection, order);
+  printReceipt(order);
+  cart = [];
+  renderCart();
+});
+
+function printReceipt(order) {
+  const win = window.open("", "", "width=300,height=600");
+  win.document.write(`
+    <html>
+    <head>
+      <title>Scontrino</title>
+      <style>
+        body { width:80mm; font-family: monospace; font-size: 12px; margin:0; padding:0; }
+        img { max-width: 100%; display:block; margin:auto; }
+        h2, small { text-align:center; margin:0; }
+        hr { border:none; border-top:1px dashed #000; margin:5px 0; }
+        @media print { body { margin:0; padding:0; } }
+      </style>
+    </head>
+    <body>
+  `);
+  if (logoURL) win.document.write(`<img src="${logoURL}"><br>`);
+  win.document.write("<h2>Bar San Luigi</h2>");
+  win.document.write(`<small>${new Date().toLocaleString()}</small><hr>`);
+  order.items.forEach(i => {
+    const name = i.name.padEnd(20, " ");
+    const price = `€${(i.price * i.qty).toFixed(2)}`.padStart(8, " ");
+    win.document.write(`${name} x${i.qty} ${price}<br>`);
+  });
+  win.document.write("<hr>");
+  win.document.write(`<strong>TOTALE: €${order.total.toFixed(2)}</strong>`);
+  win.document.write("</body></html>");
+  win.document.close();
+  win.print();
+}
+
+// ==== Storico Ordini ====
+document.getElementById("load-history-btn").addEventListener("click", loadHistory);
+
+async function loadHistory() {
+  const dateSel = document.getElementById("history-date").value;
+  if (!dateSel) return;
+  const snap = await getDocs(ordersCollection);
+  let productsCount = {};
+  let total = 0;
+  snap.forEach(docu => {
+    const data = docu.data();
+    const d = new Date(data.date);
+    const localDate = d.toISOString().split("T")[0];
+    if (localDate === dateSel) {
+      data.items.forEach(item => {
+        productsCount[item.name] = (productsCount[item.name] || 0) + item.qty;
+        total += item.price * item.qty;
+      });
+    }
+  });
+  const tbody = document.querySelector("#history-table tbody");
+  tbody.innerHTML = "";
+  Object.keys(productsCount).forEach(name => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${name}</td><td>${productsCount[name]}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("history-total").textContent = "€ " + total.toFixed(2);
+}
+
+// ==== Export CSV ====
+document.getElementById("export-csv-btn").addEventListener("click", () => {
+  const rows = [["Prodotto", "Quantità"]];
+  document.querySelectorAll("#history-table tbody tr").forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+    rows.push([cols[0].innerText, cols[1].innerText]);
+  });
+  let csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "storico.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ==== Init ====
+loadLogo();
+loadCategories();
+loadProducts();
 </body>
 </html>
