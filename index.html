@@ -1,177 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>San Luigi - Ordini</title>
-
-<!-- Firebase v9 modular via CDN -->
-<script type="module">
-/* firebase imports will be done inside the main script */
-</script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bar San Luigi</title>
 <style>
-  :root{
-    --accent:#0b92b3;
-    --bg:#f7f9fb;
-    --card:#ffffff;
-    --muted:#666;
-  }
-  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#111;}
-  header{background:var(--accent);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:12px;}
-  header img.logo{height:40px;width:40px;border-radius:6px;object-fit:cover;background:#fff;padding:4px;}
-  header h1{font-size:18px;margin:0}
-  nav{display:flex;gap:8px;margin-left:auto}
-  nav button{background:transparent;border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 10px;border-radius:6px;cursor:pointer}
-  .container{padding:16px;display:grid;grid-template-columns:1fr 360px;gap:16px;max-width:1100px;margin:18px auto}
-  .panel{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
-  .categories{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-  .cat-btn{padding:10px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer; font-weight:700}
-  .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-  .product{padding:10px;border-radius:8px;background:#f0f9fc;cursor:pointer;text-align:center}
-  .product small{display:block;color:var(--muted)}
-  /* cart */
-  .cart-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee}
-  .cart-item button{background:transparent;border:none;color:#d33;cursor:pointer}
-  .total{font-weight:800;font-size:18px;margin-top:12px}
-  .btn{display:inline-block;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;background:var(--accent);color:#fff}
-  /* settings & history full width */
-  .full{grid-column:1/-1;max-width:1100px;margin:18px auto;padding:12px}
-  label{display:block;margin-top:8px;font-size:13px;color:var(--muted)}
-  input,select,textarea{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd}
-  table{width:100%;border-collapse:collapse}
-  table th, table td{padding:6px 8px;border-bottom:1px solid #eee;text-align:left}
-  .small{font-size:13px;color:var(--muted)}
-  .flex{display:flex;gap:8px;align-items:center}
-  /* responsive */
-  @media(max-width:900px){.container{grid-template-columns:1fr;}.cart-column{order:2}}
-  /* print styles for 80mm thermal receipt */
-  @media print{
-    @page { size: 80mm auto; margin: 4mm; }
-    body{width:80mm;margin:0;font-size:12px}
-    header, nav, .container, .full{display:none}
-    .receipt{display:block}
-  }
-  /* receipt visual used in popup */
-  .receipt{display:none;font-family:monospace}
-  .receipt h2{text-align:center;margin:6px 0}
-  .receipt .line{display:flex;justify-content:space-between}
+    body { font-family: Arial, sans-serif; background-color: #f3f3f3; margin: 0; padding: 0; }
+    header { background-color: #3f51b5; color: white; padding: 10px; text-align: center; }
+    header img { max-height: 60px; display: block; margin: 0 auto 5px; }
+    nav { display: flex; background-color: #283593; }
+    nav button { flex: 1; padding: 10px; border: none; background-color: #283593; color: white; font-size: 16px; cursor: pointer; }
+    nav button.active { background-color: #1a237e; }
+    .page { display: none; padding: 15px; }
+    .page.active { display: block; }
+    .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+    .products button { padding: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; color: white; font-weight: bold; }
+    .cart { background: white; padding: 10px; margin-top: 15px; border-radius: 5px; }
+    .cart table { width: 100%; border-collapse: collapse; }
+    .cart th, .cart td { padding: 5px; border-bottom: 1px solid #ddd; text-align: left; }
+    .total { text-align: right; font-size: 18px; font-weight: bold; }
+    button.print { background-color: #4caf50; color: white; border: none; padding: 10px; margin-top: 10px; cursor: pointer; font-size: 16px; border-radius: 5px; }
+    .hidden { display: none; }
+    ul { list-style: none; padding: 0; }
+    ul li { background: #fff; padding: 5px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+    ul li button { margin-left: 5px; }
 </style>
 </head>
 <body>
-
 <header>
-  <img id="headerLogo" class="logo" alt="logo" src="" style="display:none">
-  <h1>Bar San Luigi — Punto vendita</h1>
-  <nav>
-    <button id="tabHome">Home</button>
-    <button id="tabSettings">Impostazioni</button>
-    <button id="tabHistory">Storico ordini</button>
-  </nav>
+    <img id="barLogo" alt="Logo Bar San Luigi">
+    <h1>Bar San Luigi</h1>
 </header>
+<nav>
+    <button data-page="home" class="active">Home</button>
+    <button data-page="settings">Impostazioni</button>
+    <button data-page="history">Storico ordini</button>
+</nav>
 
-<!-- MAIN VIEWS -->
-<div id="viewHome" class="container">
-  <div class="panel">
-    <div class="categories" id="categories"></div>
-    <div id="products" class="products"></div>
-  </div>
-
-  <aside class="panel cart-column">
-    <h3>Ordine corrente</h3>
-    <div id="cartList"></div>
-    <div class="total" id="cartTotal">Totale: € 0.00</div>
-    <div style="margin-top:12px">
-      <button id="printSend" class="btn">Stampa e invia</button>
+<!-- Home -->
+<div id="home" class="page active">
+    <div class="products" id="productsContainer"></div>
+    <div class="cart">
+        <table id="cartTable">
+            <thead><tr><th>Prodotto</th><th>Qtà</th><th>Prezzo</th><th></th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <div class="total">Totale: € <span id="totalPrice">0.00</span></div>
+        <button class="print" id="printAndSend">Stampa e invia</button>
     </div>
-  </aside>
 </div>
 
-<!-- SETTINGS -->
-<div id="viewSettings" class="full panel" style="display:none">
-  <h2>Impostazioni (admin)</h2>
-  <div id="settingsLocked" style="display:none">
-    <p class="small">Password richiesta</p>
-  </div>
-
-  <div id="settingsContent" style="display:none">
-    <h3>Logo</h3>
-    <input type="file" id="logoUpload" accept="image/*">
-    <div style="margin-top:6px">
-      <img id="logoPreview" style="height:80px;object-fit:contain;display:none">
-      <button id="clearLogo" class="btn" style="background:#e44;margin-left:8px">Rimuovi</button>
+<!-- Impostazioni -->
+<div id="settings" class="page">
+    <div id="loginSettings">
+        <input type="password" id="settingsPassword" placeholder="Password">
+        <button id="loginBtn">Accedi</button>
     </div>
+    <div id="settingsContent" class="hidden">
+        <h2>Gestione categorie</h2>
+        <input id="catName" placeholder="Nome categoria">
+        <input type="color" id="catColor">
+        <input type="number" id="catOrder" placeholder="Ordine esposizione">
+        <button id="addCategory">Aggiungi categoria</button>
+        <ul id="categoriesList"></ul>
 
-    <hr>
-    <h3>Categorie</h3>
-    <div style="display:flex;gap:8px">
-      <input id="catName" placeholder="Nome categoria">
-      <input id="catColor" type="color" value="#0b92b3">
-      <input id="catOrder" type="number" value="0" style="width:80px">
-      <button id="addCategory" class="btn">Aggiungi</button>
+        <h2>Gestione prodotti</h2>
+        <input id="prodName" placeholder="Nome prodotto">
+        <input type="number" id="prodPrice" placeholder="Prezzo">
+        <input type="number" id="prodQty" placeholder="Quantità (vuoto = illimitata)">
+        <select id="prodCategory"></select>
+        <button id="addProduct">Aggiungi prodotto</button>
+        <ul id="productsList"></ul>
+
+        <h2>Logo</h2>
+        <input type="file" id="logoUpload">
+        <button id="clearLogoBtn">Rimuovi logo</button>
     </div>
-    <div id="catList" style="margin-top:8px"></div>
-
-    <hr>
-    <h3>Prodotti</h3>
-    <div style="display:grid;grid-template-columns:1fr 120px 120px 120px 120px;gap:8px">
-      <input id="prodName" placeholder="Nome prodotto">
-      <input id="prodPrice" placeholder="Prezzo €" type="number" step="0.01" value="1.00">
-      <input id="prodQty" placeholder="Quantità (vuoto=illimitato)" type="number">
-      <select id="prodCategory"></select>
-      <button id="addProduct" class="btn">Aggiungi</button>
-    </div>
-    <div id="prodList" style="margin-top:8px"></div>
-  </div>
-
-  <div id="settingsLogin" style="display:block">
-    <p>Inserisci password per accedere alle impostazioni (default: <code>admin</code>)</p>
-    <input id="settingsPassword" type="password" placeholder="password">
-    <button id="loginSettings" class="btn">Accedi</button>
-  </div>
 </div>
 
-<!-- HISTORY -->
-<div id="viewHistory" class="full panel" style="display:none">
-  <h2>Storico ordini</h2>
-  <div style="display:flex;gap:8px;align-items:center">
-    <input id="histDate" type="date">
-    <button id="goDay" class="btn">Vai!</button>
-    <button id="exportCsv" class="btn" style="background:#4a8">Esporta CSV</button>
-  </div>
-
-  <div style="margin-top:12px">
-    <table id="histTable">
-      <thead><tr><th>Prodotto</th><th>Quantità</th></tr></thead>
-      <tbody></tbody>
+<!-- Storico ordini -->
+<div id="history" class="page">
+    <h2>Storico ordini</h2>
+    <input type="date" id="historyDate">
+    <button id="loadHistory">Vai!</button>
+    <table id="historyTable">
+        <thead><tr><th>Prodotto</th><th>Qtà</th></tr></thead>
+        <tbody></tbody>
     </table>
-    <div style="margin-top:8px;font-weight:800" id="histTotal">Totale incasso: € 0.00</div>
-  </div>
+    <div class="total">Totale incasso: € <span id="historyTotal">0.00</span></div>
+    <button id="exportCSV">Esporta CSV</button>
 </div>
 
-<!-- a hidden receipt template used to render the receipt in a popup for printing -->
-<div id="receiptTemplate" class="receipt">
-  <div style="text-align:center">
-    <h2>BAR SAN LUIGI</h2>
-  </div>
-  <div id="receiptLogo" style="text-align:center"></div>
-  <div class="small" id="receiptMeta"></div>
-  <hr>
-  <div id="receiptItems"></div>
-  <hr>
-  <div style="display:flex;justify-content:space-between;font-weight:800">
-    <div>Totale</div><div id="receiptTotal">€ 0.00</div>
-  </div>
-  <div style="text-align:center;margin-top:6px" class="small">Grazie! </div>
-</div>
-
+<!-- Firebase SDK -->
 <script type="module">
-/* ---------- FIREBASE CONFIG ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc,
-  query, where, orderBy, Timestamp, runTransaction
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, deleteDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDNtqjDfxsV8TccejiE5Clffd1GvajryiU",
@@ -181,482 +105,266 @@ const firebaseConfig = {
   messagingSenderId: "26384635672",
   appId: "1:26384635672:web:672d98a954aa7e5dcaf06d"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-/* ---------- STATE ---------- */
-let categories = []; // {id,name,color,order}
-let products = [];   // {id,name,price,qty,categoryId}
-let cart = [];       // {productId, name, price, qty}
-let logoDataUrl = localStorage.getItem('sanluigi_logo') || null;
+let logoDataUrl = null;
+let categories = [];
+let products = [];
+let cart = [];
 
-/* ---------- UI refs ---------- */
-const tabHome = document.getElementById('tabHome');
-const tabSettings = document.getElementById('tabSettings');
-const tabHistory = document.getElementById('tabHistory');
-const viewHome = document.getElementById('viewHome');
-const viewSettings = document.getElementById('viewSettings');
-const viewHistory = document.getElementById('viewHistory');
-const categoriesWrap = document.getElementById('categories');
-const productsWrap = document.getElementById('products');
-const cartList = document.getElementById('cartList');
-const cartTotal = document.getElementById('cartTotal');
-const printSendBtn = document.getElementById('printSend');
-
-const settingsLogin = document.getElementById('settingsLogin');
-const settingsContent = document.getElementById('settingsContent');
-const settingsPasswordInput = document.getElementById('settingsPassword');
-const loginSettingsBtn = document.getElementById('loginSettings');
-
-const catName = document.getElementById('catName');
-const catColor = document.getElementById('catColor');
-const catOrder = document.getElementById('catOrder');
-const addCategoryBtn = document.getElementById('addCategory');
-const catList = document.getElementById('catList');
-
-const prodName = document.getElementById('prodName');
-const prodPrice = document.getElementById('prodPrice');
-const prodQty = document.getElementById('prodQty');
-const prodCategory = document.getElementById('prodCategory');
-const addProductBtn = document.getElementById('addProduct');
-const prodList = document.getElementById('prodList');
-
-const logoUpload = document.getElementById('logoUpload');
-const logoPreview = document.getElementById('logoPreview');
-const clearLogoBtn = document.getElementById('clearLogo');
-
-const headerLogo = document.getElementById('headerLogo');
-
-const histDate = document.getElementById('histDate');
-const goDayBtn = document.getElementById('goDay');
-const histTableBody = document.querySelector('#histTable tbody');
-const histTotal = document.getElementById('histTotal');
-const exportCsvBtn = document.getElementById('exportCsv');
-
-const receiptTemplate = document.getElementById('receiptTemplate');
-const receiptLogo = document.getElementById('receiptLogo');
-const receiptMeta = document.getElementById('receiptMeta');
-const receiptItems = document.getElementById('receiptItems');
-const receiptTotal = document.getElementById('receiptTotal');
-
-/* ---------- NAV ---------- */
-tabHome.onclick = ()=>showView('home');
-tabSettings.onclick = ()=>showView('settings');
-tabHistory.onclick = ()=>showView('history');
-function showView(v){
-  viewHome.style.display = v==='home' ? 'grid' : 'none';
-  viewSettings.style.display = v==='settings' ? 'block' : 'none';
-  viewHistory.style.display = v==='history' ? 'block' : 'none';
+async function loadLogo(){
+    try{
+        const snap = await getDoc(doc(db,'config','logo'));
+        if(snap.exists() && snap.data().url){
+            logoDataUrl = snap.data().url;
+            document.getElementById("barLogo").src = logoDataUrl;
+        }
+    } catch(e){ console.error(e); }
 }
 
-/* ---------- FIRESTORE CRUD ---------- */
-async function loadCategoriesProducts(){
-  categories = [];
-  products = [];
-  // categories
-  const qCat = await getDocs(collection(db,'categories'));
-  qCat.forEach(d => categories.push({id:d.id, ...d.data()}));
-  categories.sort((a,b)=> (a.order||0)-(b.order||0));
-  // products
-  const qProd = await getDocs(collection(db,'products'));
-  qProd.forEach(d => products.push({id:d.id, ...d.data()}));
-  // local render
-  renderCategories();
-  renderProducts();
-  renderSettingsLists();
-  renderHeaderLogo();
+document.getElementById("logoUpload").onchange = async (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    try {
+        const refPath = storageRef(storage, 'logos/barLogo.jpg');
+        await uploadBytes(refPath, f);
+        const url = await getDownloadURL(refPath);
+        await setDoc(doc(db,'config','logo'), {url});
+        logoDataUrl = url;
+        document.getElementById("barLogo").src = logoDataUrl;
+        alert('Logo caricato.');
+    } catch(err) { console.error(err); }
+};
+
+document.getElementById("clearLogoBtn").onclick = async ()=>{
+    try {
+        const refPath = storageRef(storage, 'logos/barLogo.jpg');
+        await deleteObject(refPath);
+        await setDoc(doc(db,'config','logo'), {url:null});
+        document.getElementById("barLogo").src = '';
+        alert('Logo rimosso.');
+    } catch(err) { console.error(err); }
+};
+
+async function loadCategories(){
+    const snap = await getDocs(collection(db, "categories"));
+    categories = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    categories.sort((a,b) => a.order - b.order);
+    updateCategorySelect();
+    renderCategoriesList();
 }
 
-async function addCategoryToDB(obj){
-  const col = collection(db,'categories');
-  const docRef = await addDoc(col,obj);
-  return docRef.id;
+async function loadProducts(){
+    const snap = await getDocs(collection(db, "products"));
+    products = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderProducts();
+    renderProductsList();
 }
-async function updateCategory(id,obj){ await updateDoc(doc(db,'categories',id), obj); }
-async function deleteCategory(id){ await updateDoc(doc(db,'categories',id), {deleted:true}); /*soft-delete*/ }
 
-async function addProductToDB(obj){
-  const col = collection(db,'products');
-  const docRef = await addDoc(col,obj);
-  return docRef.id;
+function updateCategorySelect(){
+    const sel = document.getElementById("prodCategory");
+    sel.innerHTML = "";
+    categories.forEach(c=>{
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+    });
 }
-async function updateProduct(id,obj){ await updateDoc(doc(db,'products',id), obj); }
-async function deleteProduct(id){ await updateDoc(doc(db,'products',id), {deleted:true}); /*soft-delete*/ }
 
-/* ---------- UI RENDER ---------- */
-function renderCategories(){
-  categoriesWrap.innerHTML = '';
-  categories.forEach(c=>{
-    if(c.deleted) return;
-    const btn = document.createElement('button');
-    btn.className='cat-btn';
-    btn.style.background = c.color || '#0b92b3';
-    btn.textContent = c.name;
-    btn.onclick = ()=> showCategoryProducts(c.id);
-    categoriesWrap.appendChild(btn);
-  });
+function renderProducts(){
+    const container = document.getElementById("productsContainer");
+    container.innerHTML = "";
+    let sorted = [...products].sort((a,b)=>{
+        let catA = categories.find(c=>c.id===a.categoryId);
+        let catB = categories.find(c=>c.id===b.categoryId);
+        return (catA?.order || 0) - (catB?.order || 0);
+    });
+    sorted.forEach(p=>{
+        let cat = categories.find(c=>c.id===p.categoryId);
+        const btn = document.createElement("button");
+        btn.textContent = p.name;
+        btn.style.backgroundColor = cat ? cat.color : "#777";
+        btn.onclick = ()=>addToCart(p);
+        container.appendChild(btn);
+    });
 }
-function renderProducts(filterCatId){
-  productsWrap.innerHTML = '';
-  const visible = products.filter(p=>!p.deleted && (!filterCatId || p.categoryId===filterCatId));
-  if(visible.length===0){
-    productsWrap.innerHTML = '<div class="small">Nessun prodotto</div>';
-    return;
-  }
-  visible.forEach(p=>{
-    const div = document.createElement('div');
-    div.className='product';
-    const qtyLabel = (p.qty===undefined || p.qty===null) ? '' : (' / q: '+p.qty);
-    div.innerHTML = `<strong>${p.name}</strong><small>€ ${Number(p.price).toFixed(2)}${qtyLabel}</small>`;
-    div.onclick = ()=> addToCart(p.id);
-    productsWrap.appendChild(div);
-  });
+
+function renderCategoriesList(){
+    const ul = document.getElementById("categoriesList");
+    ul.innerHTML = "";
+    categories.forEach(c=>{
+        let li = document.createElement("li");
+        li.innerHTML = `${c.name} <div><button onclick="editCategory('${c.id}')">✏</button><button onclick="deleteCategory('${c.id}')">🗑</button></div>`;
+        ul.appendChild(li);
+    });
 }
-function showCategoryProducts(catId){
-  renderProducts(catId);
+
+function renderProductsList(){
+    const ul = document.getElementById("productsList");
+    ul.innerHTML = "";
+    products.forEach(p=>{
+        let li = document.createElement("li");
+        li.innerHTML = `${p.name} (€${p.price.toFixed(2)}) <div><button onclick="editProduct('${p.id}')">✏</button><button onclick="deleteProduct('${p.id}')">🗑</button></div>`;
+        ul.appendChild(li);
+    });
 }
+
+function addToCart(product){
+    let found = cart.find(c=>c.id===product.id);
+    if(found){
+        found.qty++;
+    } else {
+        cart.push({...product, qty:1});
+    }
+    renderCart();
+}
+
 function renderCart(){
-  cartList.innerHTML = '';
-  let total = 0;
-  cart.forEach((it, idx)=>{
-    const row = document.createElement('div');
-    row.className='cart-item';
-    row.innerHTML = `<div>${it.name} x${it.qty} — € ${(it.price*it.qty).toFixed(2)}</div>
-      <div><button data-i="${idx}">-</button></div>`;
-    row.querySelector('button').onclick = (e)=>{
-      const i = Number(e.target.dataset.i);
-      cart.splice(i,1);
-      renderCart();
+    const tbody = document.querySelector("#cartTable tbody");
+    tbody.innerHTML = "";
+    let total = 0;
+    cart.forEach((item, idx)=>{
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td>${item.name}</td><td>${item.qty}</td><td>€ ${(item.price*item.qty).toFixed(2)}</td>
+        <td><button onclick="removeFromCart(${idx})">-</button></td>`;
+        total += item.price*item.qty;
+        tbody.appendChild(tr);
+    });
+    document.getElementById("totalPrice").textContent = total.toFixed(2);
+}
+
+window.removeFromCart = function(index){
+    cart.splice(index,1);
+    renderCart();
+}
+
+document.getElementById("printAndSend").onclick = async ()=>{
+    if(cart.length===0) return;
+    let order = {
+        items: cart.map(c=>({name:c.name, qty:c.qty, price:c.price})),
+        total: cart.reduce((s,c)=>s+c.price*c.qty,0),
+        date: new Date().toISOString()
     };
-    cartList.appendChild(row);
-    total += it.price*it.qty;
-  });
-  cartTotal.textContent = `Totale: € ${total.toFixed(2)}`;
+    await addDoc(collection(db,"orders"), order);
+    printReceipt(order);
+    cart = [];
+    renderCart();
+};
+
+function printReceipt(order){
+    let printWin = window.open("", "", "width=400,height=600");
+    let html = `<div style='font-family:monospace;text-align:center;width:80mm;'>
+        ${logoDataUrl ? `<img src='${logoDataUrl}' style='max-width:80mm;'>` : ""}
+        <h2>Bar San Luigi</h2>
+        <p>${new Date().toLocaleString()}</p>
+        <hr>`;
+    order.items.forEach(it=>{
+        html += `<div style='display:flex;justify-content:space-between;'>
+            <span>${it.qty}x ${it.name}</span><span>€ ${(it.price*it.qty).toFixed(2)}</span></div>`;
+    });
+    html += `<hr><h3 style='text-align:right;'>Totale: € ${order.total.toFixed(2)}</h3></div>`;
+    printWin.document.write(html);
+    printWin.print();
+    printWin.close();
 }
 
-/* ---------- CART OPERATIONS ---------- */
-function addToCart(productId){
-  const p = products.find(x=>x.id===productId);
-  if(!p) return;
-  // if stock is 0 can't add
-  if(p.qty!==undefined && p.qty!==null && p.qty<=0){
-    alert('Prodotto esaurito');
-    return;
-  }
-  // if already in cart increment qty, else add
-  const existing = cart.find(c=>c.productId===productId);
-  if(existing){
-    existing.qty++;
-  }else{
-    cart.push({productId: p.id, name: p.name, price: Number(p.price), qty:1});
-  }
-  renderCart();
-}
+// Impostazioni
+document.getElementById("loginBtn").onclick = ()=>{
+    if(document.getElementById("settingsPassword").value === "admin"){
+        document.getElementById("loginSettings").classList.add("hidden");
+        document.getElementById("settingsContent").classList.remove("hidden");
+    } else {
+        alert("Password errata!");
+    }
+};
 
-/* ---------- PRINT & SEND ORDER ---------- */
-printSendBtn.onclick = async ()=>{
-  if(cart.length===0){ alert('Carrello vuoto'); return; }
-  const total = cart.reduce((s,i)=> s + i.qty*i.price, 0);
-  // build receipt HTML
-  receiptItems.innerHTML = '';
-  if(logoDataUrl){
-    receiptLogo.innerHTML = `<img src="${logoDataUrl}" style="max-height:60px">`;
-  } else {
-    receiptLogo.innerHTML = '';
-  }
-  const now = new Date();
-  // get progressive order number with transaction
-  let orderNumber = await getNextOrderNumber();
-  receiptMeta.innerHTML = `Bar San Luigi<br>${now.toLocaleString()}<br>Ordine #${orderNumber}`;
-  cart.forEach(it=>{
-    const div = document.createElement('div');
-    div.className='line';
-    div.innerHTML = `<div>${it.name} x${it.qty}</div><div>€ ${(it.price*it.qty).toFixed(2)}</div>`;
-    receiptItems.appendChild(div);
-  });
-  receiptTotal.textContent = `€ ${total.toFixed(2)}`;
+document.getElementById("addCategory").onclick = async ()=>{
+    let name = document.getElementById("catName").value;
+    let color = document.getElementById("catColor").value;
+    let order = parseInt(document.getElementById("catOrder").value)||0;
+    await addDoc(collection(db,"categories"), {name,color,order});
+    await loadCategories();
+};
 
-  // Save order to Firestore
-  const orderObj = {
-    number: orderNumber,
-    createdAt: Timestamp.fromDate(now),
-    items: cart.map(i=>({productId:i.productId, name:i.name, price:i.price, qty:i.qty})),
-    total: Number(total.toFixed(2))
-  };
-  try{
-    await addDoc(collection(db,'orders'), orderObj);
-    // decrement stock for products with finite qty
-    await Promise.all(cart.map(async i=>{
-      const pRef = doc(db,'products',i.productId);
-      try{
-        await runTransaction(db, async (t)=>{
-          const snap = await t.get(pRef);
-          if(!snap.exists()) return;
-          const data = snap.data();
-          if(data.qty!==undefined && data.qty!==null){
-            const newQty = (data.qty || 0) - i.qty;
-            t.update(pRef, { qty: Math.max(newQty,0) });
-          }
+document.getElementById("addProduct").onclick = async ()=>{
+    let name = document.getElementById("prodName").value;
+    let price = parseFloat(document.getElementById("prodPrice").value);
+    let qty = document.getElementById("prodQty").value ? parseInt(document.getElementById("prodQty").value) : null;
+    let categoryId = document.getElementById("prodCategory").value;
+    await addDoc(collection(db,"products"), {name,price,qty,categoryId});
+    await loadProducts();
+};
+
+window.deleteCategory = async function(id){
+    await deleteDoc(doc(db,"categories",id));
+    await loadCategories();
+    renderProducts();
+};
+
+window.deleteProduct = async function(id){
+    await deleteDoc(doc(db,"products",id));
+    await loadProducts();
+};
+
+// Storico
+document.getElementById("loadHistory").onclick = async ()=>{
+    let dateSel = document.getElementById("historyDate").value;
+    if(!dateSel) return;
+    let qSnap = await getDocs(collection(db,"orders"));
+    let filtered = [];
+    qSnap.forEach(docSnap=>{
+        let d = new Date(docSnap.data().date);
+        if(d.toISOString().slice(0,10) === dateSel) filtered.push(docSnap.data());
+    });
+    let prodMap = {};
+    let total = 0;
+    filtered.forEach(o=>{
+        total += o.total;
+        o.items.forEach(it=>{
+            prodMap[it.name] = (prodMap[it.name]||0) + it.qty;
         });
-      }catch(e){ console.warn('tx stock error',e) }
-    }));
-  }catch(e){
-    console.error('save order error',e);
-    alert('Errore salvataggio ordine: '+e.message);
-    return;
-  }
-
-  // open print window
-  const printWindow = window.open('','_blank','width=400,height=600');
-  if(!printWindow){ alert('Pop-up bloccato: permetti pop-up e riprova'); return; }
-  // build content
-  const html = `
-    <html><head>
-      <meta charset="utf-8"/>
-      <title>Scontrino</title>
-      <style>
-        @page { size: 80mm auto; margin:4mm; }
-        body{font-family:monospace;font-size:12px}
-        .center{text-align:center}
-        .line{display:flex;justify-content:space-between}
-      </style>
-    </head><body>
-      <div class="center">
-        <h2>BAR SAN LUIGI</h2>
-        ${ logoDataUrl ? `<img src="${logoDataUrl}" style="max-height:80px">` : '' }
-        <div>${now.toLocaleString()}</div>
-        <div>Ordine #${orderNumber}</div>
-      </div>
-      <hr/>
-      ${cart.map(it=>`<div class="line"><div>${it.name} x${it.qty}</div><div>€ ${(it.price*it.qty).toFixed(2)}</div></div>`).join('')}
-      <hr/>
-      <div class="line" style="font-weight:800"><div>Totale</div><div>€ ${total.toFixed(2)}</div></div>
-      <div style="text-align:center;margin-top:8px">Grazie!</div>
-    </body></html>
-  `;
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  // give time to load then print
-  setTimeout(()=>{
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  },500);
-
-  // clear cart
-  cart = [];
-  renderCart();
-  // reload product list to show updated stock
-  await loadCategoriesProducts();
-};
-
-/* get next order number using a counter doc */
-async function getNextOrderNumber(){
-  const counterRef = doc(db,'counters','orders');
-  try{
-    const next = await runTransaction(db, async (t)=>{
-      const snap = await t.get(counterRef);
-      if(!snap.exists()){
-        t.set(counterRef, {value: 1});
-        return 1;
-      } else {
-        const val = (snap.data().value || 0) + 1;
-        t.update(counterRef, {value: val});
-        return val;
-      }
     });
-    return next;
-  }catch(e){
-    console.warn('counter tx failed',e);
-    // fallback timestamp based number
-    return Date.now();
-  }
-}
-
-/* ---------- SETTINGS UI ---------- */
-loginSettingsBtn.onclick = ()=>{
-  const pass = settingsPasswordInput.value || '';
-  if(pass === 'admin'){
-    settingsLogin.style.display = 'none';
-    settingsContent.style.display = 'block';
-    loadCategoriesProducts();
-  }else{
-    alert('Password errata');
-  }
-};
-addCategoryBtn.onclick = async ()=>{
-  const obj = { name: catName.value||'Categoria', color: catColor.value, order: Number(catOrder.value||0) };
-  try{
-    const id = await addCategoryToDB(obj);
-    obj.id = id; categories.push(obj);
-    renderCategories(); renderSettingsLists();
-    catName.value='';
-  }catch(e){ console.error(e); alert('Errore'); }
+    const tbody = document.querySelector("#historyTable tbody");
+    tbody.innerHTML = "";
+    for(let [name,qty] of Object.entries(prodMap)){
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}</td><td>${qty}</td>`;
+        tbody.appendChild(tr);
+    }
+    document.getElementById("historyTotal").textContent = total.toFixed(2);
 };
 
-addProductBtn.onclick = async ()=>{
-  if(!prodName.value){ alert('Nome obbligatorio'); return; }
-  const p = {
-    name: prodName.value,
-    price: Number(prodPrice.value || 0),
-    qty: prodQty.value===''? null: Number(prodQty.value),
-    categoryId: prodCategory.value || null
-  };
-  try{
-    const id = await addProductToDB(p);
-    p.id = id; products.push(p);
-    renderProducts(); renderSettingsLists();
-    prodName.value=''; prodPrice.value='1.00'; prodQty.value='';
-  }catch(e){ console.error(e); alert('Errore creazione prodotto'); }
-};
-
-function renderSettingsLists(){
-  // categories panel
-  catList.innerHTML = '';
-  prodCategory.innerHTML = '<option value="">-- nessuna --</option>';
-  categories.forEach(c=>{
-    if(c.deleted) return;
-    const el = document.createElement('div');
-    el.className='flex';
-    el.innerHTML = `<div style="flex:1"><strong>${c.name}</strong> <span class="small">order:${c.order}</span></div>
-      <div><button data-id="${c.id}" class="btn">Modifica</button> <button data-del="${c.id}" style="background:#e44" class="btn">Elimina</button></div>`;
-    catList.appendChild(el);
-    // category dropdown for product creation
-    const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.name;
-    prodCategory.appendChild(opt);
-  });
-  // products list
-  prodList.innerHTML = '';
-  products.forEach(p=>{
-    if(p.deleted) return;
-    const el = document.createElement('div');
-    el.className='flex';
-    el.innerHTML = `<div style="flex:1"><strong>${p.name}</strong> <span class="small">€ ${Number(p.price).toFixed(2)} ${p.qty===null||p.qty===undefined? '': '/ q:' + p.qty}</span></div>
-      <div><button data-id="${p.id}" class="btn">Modifica</button> <button data-del="${p.id}" style="background:#e44" class="btn">Elimina</button></div>`;
-    prodList.appendChild(el);
-  });
-  // attach event listeners for modify/delete
-  catList.querySelectorAll('button[data-id]').forEach(b=>{
-    b.onclick = ()=> {
-      const id = b.dataset.id;
-      const c = categories.find(x=>x.id===id);
-      if(!c) return;
-      const newName = prompt('Nome categoria', c.name);
-      if(newName!==null) updateCategory(id,{ name:newName });
-    };
-  });
-  catList.querySelectorAll('button[data-del]').forEach(b=>{
-    b.onclick = async ()=> {
-      const id = b.dataset.del;
-      if(!confirm('Eliminare categoria?')) return;
-      await deleteCategory(id);
-      loadCategoriesProducts();
-    };
-  });
-  prodList.querySelectorAll('button[data-id]').forEach(b=>{
-    b.onclick = ()=> {
-      const id = b.dataset.id;
-      const p = products.find(x=>x.id===id);
-      if(!p) return;
-      const newName = prompt('Nome prodotto', p.name);
-      if(newName===null) return;
-      const newPrice = prompt('Prezzo', p.price);
-      if(newPrice===null) return;
-      const newQty = prompt('Quantità (vuoto=illimitata)', p.qty===null || p.qty===undefined ? '' : p.qty);
-      updateProduct(id, { name: newName, price: Number(newPrice), qty: newQty===''? null: Number(newQty) });
-      setTimeout(loadCategoriesProducts,400);
-    };
-  });
-  prodList.querySelectorAll('button[data-del]').forEach(b=>{
-    b.onclick = async ()=> {
-      const id = b.dataset.del;
-      if(!confirm('Eliminare prodotto?')) return;
-      await deleteProduct(id);
-      loadCategoriesProducts();
-    };
-  });
-}
-
-/* ---------- LOGO UPLOAD ---------- */
-logoUpload.onchange = (e)=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    logoDataUrl = ev.target.result;
-    localStorage.setItem('sanluigi_logo', logoDataUrl);
-    renderHeaderLogo();
-  };
-  reader.readAsDataURL(f);
-};
-clearLogoBtn.onclick = ()=>{
-  localStorage.removeItem('sanluigi_logo');
-  logoDataUrl = null;
-  renderHeaderLogo();
-};
-function renderHeaderLogo(){
-  if(logoDataUrl){
-    headerLogo.src = logoDataUrl;
-    headerLogo.style.display = 'block';
-    logoPreview.src = logoDataUrl;
-    logoPreview.style.display = 'inline-block';
-  } else {
-    headerLogo.style.display = 'none';
-    logoPreview.style.display = 'none';
-  }
-}
-
-/* ---------- HISTORY ---------- */
-goDayBtn.onclick = async ()=>{
-  const d = histDate.value;
-  if(!d){ alert('Seleziona una data'); return; }
-  const start = new Date(d + 'T00:00:00');
-  const end = new Date(d + 'T23:59:59');
-  const q = query(collection(db,'orders'), where('createdAt','>=', Timestamp.fromDate(start)), where('createdAt','<=', Timestamp.fromDate(end)));
-  const snap = await getDocs(q);
-  const map = new Map(); // productName => qty
-  let totalIncasso = 0;
-  snap.forEach(s=>{
-    const data = s.data();
-    totalIncasso += (data.total || 0);
-    (data.items || []).forEach(it=>{
-      const key = it.name || it.productId;
-      map.set(key, (map.get(key)||0) + (it.qty||0));
+document.getElementById("exportCSV").onclick = ()=>{
+    let rows = [["Prodotto","Quantità"]];
+    document.querySelectorAll("#historyTable tbody tr").forEach(tr=>{
+        let cols = tr.querySelectorAll("td");
+        rows.push([cols[0].innerText, cols[1].innerText]);
     });
-  });
-  // render
-  histTableBody.innerHTML = '';
-  Array.from(map.entries()).forEach(([name,qty])=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${name}</td><td>${qty}</td>`;
-    histTableBody.appendChild(tr);
-  });
-  histTotal.textContent = `Totale incasso: € ${totalIncasso.toFixed(2)}`;
-  // store last exported data for CSV
-  window._lastHistory = {rows: Array.from(map.entries()), total: totalIncasso, date: d};
+    let csvContent = rows.map(r=>r.join(",")).join("\n");
+    let blob = new Blob([csvContent], {type:"text/csv"});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "storico.csv";
+    a.click();
 };
 
-exportCsvBtn.onclick = ()=>{
-  const data = window._lastHistory;
-  if(!data){ alert('Genera prima lo storico giornaliero con "Vai!"'); return; }
-  let csv = 'Prodotto,Quantità\n';
-  data.rows.forEach(r => { csv += `"${r[0].replace(/"/g,'""')}",${r[1]}\n`; });
-  csv += `\nTotale incasso,${data.total.toFixed(2)}\n`;
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `storico_${data.date}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+document.querySelectorAll("nav button").forEach(btn=>{
+    btn.onclick = ()=>{
+        document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+        document.getElementById(btn.dataset.page).classList.add("active");
+    };
+});
 
-/* ---------- START ---------- */
-showView('home');
-renderCart();
-loadCategoriesProducts(); // initial load
-
+await loadLogo();
+await loadCategories();
+await loadProducts();
 </script>
 </body>
 </html>
