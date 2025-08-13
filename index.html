@@ -2,427 +2,375 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Bar San Luigi</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ===== STILE ORIGINALE ===== -->
+<title>Bar San Luigi Gonzaga</title>
 <style>
-    body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }
-    header { background-color: #333; color: white; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-    header img { max-height: 80px; margin-bottom: 5px; }
-    nav { display: flex; justify-content: center; background-color: #444; }
-    nav button { padding: 10px 15px; border: none; background-color: #444; color: white; cursor: pointer; font-size: 16px; }
-    nav button.active { background-color: #666; }
-    .page { display: none; padding: 15px; }
-    .page.active { display: block; }
-    .product-btn { padding: 15px; margin: 5px; border: none; color: white; font-size: 18px; cursor: pointer; border-radius: 8px; min-width: 100px; }
-    #cart { background-color: white; padding: 10px; margin-top: 15px; border-radius: 8px; }
-    #cart table { width: 100%; }
-    #cart th, #cart td { padding: 5px; text-align: left; }
-    .form-section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
-    .form-section input, .form-section select, .form-section button { margin: 5px 0; padding: 8px; font-size: 16px; }
-    table { border-collapse: collapse; width: 100%; background: white; }
-    table, th, td { border: 1px solid #ddd; }
-    th, td { padding: 8px; }
-    tfoot { font-weight: bold; }
+body { font-family: sans-serif; margin: 0; padding: 0; }
+nav { background: #333; padding: 10px; display: flex; gap: 10px; }
+nav button { background: #666; color: white; border: none; padding: 8px 12px; cursor: pointer; }
+nav button.active { background: #ffa500; }
+.page { display: none; padding: 10px; }
+.page.active { display: block; }
+.product-btn { display: inline-block; padding: 10px; margin: 5px; border: none; color: white; font-weight: bold; cursor: pointer; }
+#cart-table, #history-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+#cart-table td, #history-table td, #history-table th { border: 1px solid #ccc; padding: 4px; }
 </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header>
-    <img id="bar-logo" src="" alt="Logo Bar San Luigi">
-    <h1>Bar San Luigi</h1>
-</header>
-
-<!-- ===== NAVIGAZIONE ===== -->
+<!-- ===== NAVBAR ===== -->
 <nav>
-    <button data-page="home" class="active">Home</button>
-    <button data-page="settings">Impostazioni</button>
-    <button data-page="history">Storico Ordini</button>
+  <button data-page="home" class="active">Home</button>
+  <button data-page="orders">Storico</button>
+  <button data-page="settings">Impostazioni</button>
 </nav>
 
-<!-- ===== PAGINA HOME ===== -->
+<!-- ===== HOME ===== -->
 <div id="home" class="page active">
-    <div id="products-container"></div>
-    <div id="cart">
-        <h3>Carrello</h3>
-        <table id="cart-table">
-            <thead><tr><th>Prodotto</th><th>Q.tà</th><th>Prezzo</th><th></th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <h3>Totale: € <span id="cart-total">0.00</span></h3>
-        <button id="print-send">Stampa e invia</button>
-    </div>
+  <h1><img id="bar-logo" style="max-height:80px; vertical-align:middle"> Bar San Luigi Gonzaga</h1>
+  <div id="products-container"></div>
+
+  <h2>Carrello</h2>
+  <table id="cart-table">
+    <thead><tr><th>Prodotto</th><th>Qtà</th><th>Prezzo</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p>Totale: € <span id="cart-total">0.00</span></p>
+  <button id="print-send">Stampa & Salva Ordine</button>
 </div>
 
-<!-- ===== PAGINA IMPOSTAZIONI ===== -->
+<!-- ===== ORDERS ===== -->
+<div id="orders" class="page">
+  <h2>Storico ordini</h2>
+  <input type="date" id="history-date">
+  <button id="load-history-btn">Carica</button>
+  <button id="export-csv-btn">Esporta CSV</button>
+  <table id="history-table">
+    <thead><tr><th>Prodotto</th><th>Quantità</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p>Totale: <span id="history-total">€ 0.00</span></p>
+</div>
+
+<!-- ===== SETTINGS ===== -->
 <div id="settings" class="page">
-    <div id="login-section" class="form-section">
-        <h3>Accesso Impostazioni</h3>
-        <input type="password" id="settings-password" placeholder="Password">
-        <button id="login-btn">Entra</button>
-    </div>
+  <div id="login-section">
+    <input type="password" id="settings-password" placeholder="Password">
+    <button id="login-btn">Accedi</button>
+  </div>
 
-    <div id="settings-content" style="display:none;">
-        <!-- Caricamento logo -->
-        <div class="form-section">
-            <h3>Logo</h3>
-            <input type="file" id="logo-input" accept="image/*">
-            <button id="upload-logo-btn">Carica Logo</button>
-        </div>
+  <div id="settings-content" style="display:none">
+    <h2>Logo</h2>
+    <input type="file" id="logo-input">
+    <button id="upload-logo-btn">Carica Logo</button>
 
-        <!-- Categorie -->
-        <div class="form-section">
-            <h3>Categorie</h3>
-            <input type="text" id="category-name" placeholder="Nome categoria">
-            <input type="color" id="category-color">
-            <input type="number" id="category-order" placeholder="Ordine">
-            <button id="add-category-btn">Aggiungi Categoria</button>
-            <ul id="categories-list"></ul>
-        </div>
+    <h2>Categorie</h2>
+    <input type="text" id="category-name" placeholder="Nome categoria">
+    <input type="color" id="category-color" value="#ff0000">
+    <input type="number" id="category-order" placeholder="Ordine">
+    <button id="add-category-btn">Aggiungi</button>
+    <ul id="categories-list"></ul>
 
-        <!-- Prodotti -->
-        <div class="form-section">
-            <h3>Prodotti</h3>
-            <input type="text" id="product-name" placeholder="Nome prodotto">
-            <input type="number" id="product-price" placeholder="Prezzo">
-            <input type="number" id="product-stock" placeholder="Q.tà (vuoto = illimitata)">
-            <select id="product-category"></select>
-            <button id="add-product-btn">Aggiungi Prodotto</button>
-            <ul id="products-list"></ul>
-        </div>
-    </div>
+    <h2>Prodotti</h2>
+    <input type="text" id="product-name" placeholder="Nome prodotto">
+    <input type="number" id="product-price" placeholder="Prezzo" step="0.01">
+    <input type="number" id="product-stock" placeholder="Scorta">
+    <select id="product-category"></select>
+    <button id="add-product-btn">Aggiungi</button>
+    <ul id="products-list"></ul>
+  </div>
 </div>
-
-<!-- ===== PAGINA STORICO ===== -->
-<div id="history" class="page">
-    <div class="form-section">
-        <h3>Storico ordini</h3>
-        <input type="date" id="history-date">
-        <button id="load-history-btn">Vai!</button>
-    </div>
-    <div class="form-section">
-        <table id="history-table">
-            <thead><tr><th>Prodotto</th><th>Quantità</th></tr></thead>
-            <tbody></tbody>
-            <tfoot><tr><td>Totale incasso</td><td id="history-total">€ 0.00</td></tr></tfoot>
-        </table>
-        <button id="export-csv-btn">Esporta CSV</button>
-    </div>
-</div>
-
-<!-- ===== SCRIPT JS ===== -->
 <script type="module">
-/* =======================
-   INIZIALIZZAZIONE FIREBASE
-   ======================= */
+/* ===================== FIREBASE INIT ===================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// Configurazione Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDNtqjDfxsV8TccejiE5Clffd1GvajryiU",
-    authDomain: "bar-san-luigi.firebaseapp.com",
-    projectId: "bar-san-luigi",
-    storageBucket: "bar-san-luigi.appspot.com",
-    messagingSenderId: "26384635672",
-    appId: "1:26384635672:web:672d98a954aa7e5dcaf06d"
+  apiKey: "AIzaSyDNtqjDfxsV8TccejiE5Clffd1GvajryiU",
+  authDomain: "bar-san-luigi.firebaseapp.com",
+  projectId: "bar-san-luigi",
+  storageBucket: "bar-san-luigi.firebasestorage.app",
+  messagingSenderId: "26384635672",
+  appId: "1:26384635672:web:672d98a954aa7e5dcaf06d"
 };
 
-// Inizializza
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* =======================
-   NAVIGAZIONE TRA PAGINE
-   ======================= */
-document.querySelectorAll("nav button").forEach(btn => {
-    btn.addEventListener("click", () => {
-        document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(btn.dataset.page).classList.add("active");
-    });
-});
-
-/* =======================
-   LOGIN IMPOSTAZIONI
-   ======================= */
-const settingsPassword = "admin";
-document.getElementById("login-btn").addEventListener("click", () => {
-    if (document.getElementById("settings-password").value === settingsPassword) {
-        document.getElementById("login-section").style.display = "none";
-        document.getElementById("settings-content").style.display = "block";
-        loadCategories();
-        loadProducts();
-        loadLogo();
-    } else {
-        alert("Password errata");
-    }
-});
-
-/* =======================
-   GESTIONE LOGO
-   ======================= */
-async function loadLogo() {
-    try {
-        const url = await getDownloadURL(ref(storage, "logo.png"));
-        document.getElementById("bar-logo").src = url;
-    } catch (e) {
-        console.log("Nessun logo trovato");
-    }
-}
-
-document.getElementById("upload-logo-btn").addEventListener("click", async () => {
-    const file = document.getElementById("logo-input").files[0];
-    if (!file) return alert("Seleziona un file");
-    const storageRef = ref(storage, "logo.png");
-    await uploadBytes(storageRef, file);
-    loadLogo();
-    alert("Logo caricato");
-});
-
-/* =======================
-   CATEGORIE
-   ======================= */
-async function loadCategories() {
-    const snap = await getDocs(collection(db, "categories"));
-    const list = document.getElementById("categories-list");
-    const select = document.getElementById("product-category");
-    list.innerHTML = "";
-    select.innerHTML = "";
-    const cats = [];
-    snap.forEach(docSnap => {
-        const c = { id: docSnap.id, ...docSnap.data() };
-        cats.push(c);
-    });
-    cats.sort((a, b) => a.order - b.order);
-    cats.forEach(cat => {
-        // Lista per impostazioni
-        const li = document.createElement("li");
-        li.innerHTML = `<input type="text" value="${cat.name}" data-id="${cat.id}" class="edit-cat-name">
-                        <input type="color" value="${cat.color}" data-id="${cat.id}" class="edit-cat-color">
-                        <input type="number" value="${cat.order}" data-id="${cat.id}" class="edit-cat-order">
-                        <button class="save-cat" data-id="${cat.id}">💾</button>
-                        <button class="delete-cat" data-id="${cat.id}">❌</button>`;
-        list.appendChild(li);
-        // Select per prodotti
-        const opt = document.createElement("option");
-        opt.value = cat.id;
-        opt.textContent = cat.name;
-        select.appendChild(opt);
-    });
-}
-
-document.getElementById("add-category-btn").addEventListener("click", async () => {
-    const name = document.getElementById("category-name").value.trim();
-    const color = document.getElementById("category-color").value;
-    const order = parseInt(document.getElementById("category-order").value) || 0;
-    if (!name) return;
-    await addDoc(collection(db, "categories"), { name, color, order });
-    loadCategories();
-});
-
-document.getElementById("categories-list").addEventListener("click", async e => {
-    if (e.target.classList.contains("save-cat")) {
-        const id = e.target.dataset.id;
-        const name = document.querySelector(`.edit-cat-name[data-id="${id}"]`).value;
-        const color = document.querySelector(`.edit-cat-color[data-id="${id}"]`).value;
-        const order = parseInt(document.querySelector(`.edit-cat-order[data-id="${id}"]`).value);
-        await updateDoc(doc(db, "categories", id), { name, color, order });
-        loadCategories();
-    }
-    if (e.target.classList.contains("delete-cat")) {
-        await deleteDoc(doc(db, "categories", e.target.dataset.id));
-        loadCategories();
-    }
-});
-
-/* =======================
-   PRODOTTI
-   ======================= */
-async function loadProducts() {
-    const snap = await getDocs(collection(db, "products"));
-    const list = document.getElementById("products-list");
-    list.innerHTML = "";
-    const prods = [];
-    snap.forEach(docSnap => {
-        const p = { id: docSnap.id, ...docSnap.data() };
-        prods.push(p);
-    });
-    // Mostra prodotti nelle impostazioni
-    prods.forEach(prod => {
-        const li = document.createElement("li");
-        li.innerHTML = `<input type="text" value="${prod.name}" data-id="${prod.id}" class="edit-prod-name">
-                        <input type="number" value="${prod.price}" data-id="${prod.id}" class="edit-prod-price">
-                        <input type="number" value="${prod.stock ?? ""}" data-id="${prod.id}" class="edit-prod-stock">
-                        <label>Attivo <input type="checkbox" ${prod.active !== false ? "checked" : ""} data-id="${prod.id}" class="edit-prod-active"></label>
-                        <button class="save-prod" data-id="${prod.id}">💾</button>
-                        <button class="delete-prod" data-id="${prod.id}">❌</button>`;
-        list.appendChild(li);
-    });
-    renderProductButtons(prods);
-}
-
-document.getElementById("add-product-btn").addEventListener("click", async () => {
-    const name = document.getElementById("product-name").value.trim();
-    const price = parseFloat(document.getElementById("product-price").value);
-    const stock = document.getElementById("product-stock").value;
-    const categoryId = document.getElementById("product-category").value;
-    if (!name || isNaN(price)) return;
-    await addDoc(collection(db, "products"), { name, price, stock: stock || null, categoryId, active: true });
-    loadProducts();
-});
-
-document.getElementById("products-list").addEventListener("click", async e => {
-    if (e.target.classList.contains("save-prod")) {
-        const id = e.target.dataset.id;
-        const name = document.querySelector(`.edit-prod-name[data-id="${id}"]`).value;
-        const price = parseFloat(document.querySelector(`.edit-prod-price[data-id="${id}"]`).value);
-        const stock = document.querySelector(`.edit-prod-stock[data-id="${id}"]`).value;
-        const active = document.querySelector(`.edit-prod-active[data-id="${id}"]`).checked;
-        await updateDoc(doc(db, "products", id), { name, price, stock: stock || null, active });
-        loadProducts();
-    }
-    if (e.target.classList.contains("delete-prod")) {
-        await deleteDoc(doc(db, "products", e.target.dataset.id));
-        loadProducts();
-    }
-});
-
-/* =======================
-   RENDER BOTTONI HOME
-   ======================= */
-async function renderProductButtons(products) {
-    const catsSnap = await getDocs(collection(db, "categories"));
-    const cats = [];
-    catsSnap.forEach(docSnap => cats.push({ id: docSnap.id, ...docSnap.data() }));
-    cats.sort((a, b) => a.order - b.order);
-
-    const container = document.getElementById("products-container");
-    container.innerHTML = "";
-    cats.forEach(cat => {
-        const catDiv = document.createElement("div");
-        catDiv.innerHTML = `<h3>${cat.name}</h3>`;
-        products.filter(p => p.categoryId === cat.id && p.active !== false).forEach(prod => {
-            const btn = document.createElement("button");
-            btn.textContent = prod.name;
-            btn.className = "product-btn";
-            btn.style.backgroundColor = cat.color;
-            btn.addEventListener("click", () => addToCart(prod));
-            catDiv.appendChild(btn);
-        });
-        container.appendChild(catDiv);
-    });
-}
-
-/* =======================
-   CARRELLO E STAMPA
-   ======================= */
+/* ===================== GLOBAL VARS ===================== */
+let categories = [];
+let products = [];
 let cart = [];
+let logoUrl = "";
 
-function addToCart(prod) {
-    const item = cart.find(p => p.id === prod.id);
-    if (item) {
-        item.qty++;
-    } else {
-        cart.push({ ...prod, qty: 1 });
-    }
-    renderCart();
+/* ===================== NAVIGATION ===================== */
+document.querySelectorAll("nav button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(btn.dataset.page).classList.add("active");
+  });
+});
+
+/* ===================== LOAD LOGO ===================== */
+async function loadLogo(){
+  const docSnap = await getDoc(doc(db,"config","logo"));
+  if(docSnap.exists()){
+    logoUrl = docSnap.data().url;
+    document.getElementById("bar-logo").src = logoUrl;
+  }
 }
 
-function renderCart() {
-    const tbody = document.querySelector("#cart-table tbody");
-    tbody.innerHTML = "";
-    let total = 0;
-    cart.forEach(item => {
-        const tr = document.createElement("tr");
-        total += item.price * item.qty;
-        tr.innerHTML = `<td>${item.name}</td><td>${item.qty}</td><td>€ ${item.price.toFixed(2)}</td>
-                        <td><button onclick="removeFromCart('${item.id}')">-</button></td>`;
-        tbody.appendChild(tr);
-    });
-    document.getElementById("cart-total").textContent = total.toFixed(2);
+/* ===================== UPLOAD LOGO ===================== */
+document.getElementById("upload-logo-btn").addEventListener("click", async ()=>{
+  const file = document.getElementById("logo-input").files[0];
+  if(!file) return alert("Seleziona un file logo");
+  const storageRef = ref(storage, "logo.jpg");
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+  await setDoc(doc(db,"config","logo"), { url });
+  logoUrl = url;
+  document.getElementById("bar-logo").src = logoUrl;
+  alert("Logo caricato con successo!");
+});
+
+/* ===================== CATEGORIES ===================== */
+async function loadCategories(){
+  categories = [];
+  const snap = await getDocs(collection(db,"categories"));
+  snap.forEach(docu => {
+    categories.push({ id: docu.id, ...docu.data() });
+  });
+  categories.sort((a,b)=>a.order-b.order);
+  renderCategoriesList();
+  renderProductCategorySelect();
+  renderProductsButtons();
 }
 
-window.removeFromCart = (id) => {
-    const index = cart.findIndex(p => p.id === id);
-    if (index > -1) {
-        cart[index].qty--;
-        if (cart[index].qty <= 0) cart.splice(index, 1);
-        renderCart();
+function renderCategoriesList(){
+  const ul = document.getElementById("categories-list");
+  ul.innerHTML = "";
+  categories.forEach(cat=>{
+    const li = document.createElement("li");
+    li.textContent = `${cat.name} (${cat.color})`;
+    li.style.color = cat.color;
+    li.addEventListener("click", async ()=>{
+      const newName = prompt("Nuovo nome categoria", cat.name);
+      const newColor = prompt("Nuovo colore hex", cat.color);
+      const newOrder = parseInt(prompt("Nuovo ordine", cat.order));
+      await updateDoc(doc(db,"categories",cat.id), { name:newName, color:newColor, order:newOrder });
+      loadCategories();
+    });
+    ul.appendChild(li);
+  });
+}
+
+document.getElementById("add-category-btn").addEventListener("click", async ()=>{
+  const name = document.getElementById("category-name").value;
+  const color = document.getElementById("category-color").value;
+  const order = parseInt(document.getElementById("category-order").value);
+  if(!name) return alert("Inserisci nome categoria");
+  await addDoc(collection(db,"categories"), { name, color, order });
+  loadCategories();
+});
+
+/* ===================== PRODUCTS ===================== */
+async function loadProducts(){
+  products = [];
+  const snap = await getDocs(collection(db,"products"));
+  snap.forEach(docu => {
+    products.push({ id: docu.id, ...docu.data() });
+  });
+  renderProductsList();
+  renderProductsButtons();
+}
+
+function renderProductsList(){
+  const ul = document.getElementById("products-list");
+  ul.innerHTML = "";
+  products.forEach(prod=>{
+    const li = document.createElement("li");
+    li.textContent = `${prod.name} (€${prod.price}) ${prod.active===false?"[DISATTIVO]":""}`;
+    li.style.color = categories.find(c=>c.name===prod.category)?.color || "black";
+    li.addEventListener("click", async ()=>{
+      const newName = prompt("Nuovo nome prodotto", prod.name);
+      const newPrice = parseFloat(prompt("Nuovo prezzo", prod.price));
+      const newStock = prompt("Nuova scorta (vuoto per illimitato)", prod.stock ?? "");
+      const newActive = confirm("Attivo? OK=si, Annulla=no");
+      await updateDoc(doc(db,"products",prod.id), { 
+        name:newName, 
+        price:newPrice, 
+        stock:newStock===""?null:parseInt(newStock),
+        active:newActive
+      });
+      loadProducts();
+    });
+    ul.appendChild(li);
+  });
+}
+
+function renderProductCategorySelect(){
+  const sel = document.getElementById("product-category");
+  sel.innerHTML = "";
+  categories.forEach(cat=>{
+    const opt = document.createElement("option");
+    opt.value = cat.name;
+    opt.textContent = cat.name;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById("add-product-btn").addEventListener("click", async ()=>{
+  const name = document.getElementById("product-name").value;
+  const price = parseFloat(document.getElementById("product-price").value);
+  const stock = document.getElementById("product-stock").value;
+  const category = document.getElementById("product-category").value;
+  if(!name || isNaN(price)) return alert("Nome e prezzo obbligatori");
+  await addDoc(collection(db,"products"), { 
+    name, price, category, 
+    stock: stock===""?null:parseInt(stock),
+    active:true
+  });
+  loadProducts();
+});
+
+/* ===================== HOME BUTTONS ===================== */
+function renderProductsButtons(){
+  const container = document.getElementById("products-container");
+  container.innerHTML = "";
+  categories.forEach(cat=>{
+    const catDiv = document.createElement("div");
+    catDiv.innerHTML = `<h3>${cat.name}</h3>`;
+    products.filter(p=>p.category===cat.name && p.active!==false)
+      .forEach(prod=>{
+        const btn = document.createElement("button");
+        btn.className = "product-btn";
+        btn.style.background = cat.color;
+        btn.textContent = `${prod.name} (€${prod.price})`;
+        btn.addEventListener("click", ()=>addToCart(prod));
+        catDiv.appendChild(btn);
+      });
+    container.appendChild(catDiv);
+  });
+}
+
+/* ===================== CART ===================== */
+function addToCart(prod){
+  const found = cart.find(i=>i.id===prod.id);
+  if(found){ found.qty++; }
+  else { cart.push({ ...prod, qty:1 }); }
+  renderCart();
+}
+
+function renderCart(){
+  const tbody = document.querySelector("#cart-table tbody");
+  tbody.innerHTML = "";
+  let total = 0;
+  cart.forEach((item,idx)=>{
+    total += item.price * item.qty;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${item.name}</td><td>${item.qty}</td><td>€${(item.price*item.qty).toFixed(2)}</td><td><button data-idx="${idx}">-</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("cart-total").textContent = total.toFixed(2);
+  tbody.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      cart.splice(btn.dataset.idx,1);
+      renderCart();
+    });
+  });
+}
+
+/* ===================== PRINT & SAVE ===================== */
+document.getElementById("print-send").addEventListener("click", async ()=>{
+  if(cart.length===0) return alert("Carrello vuoto");
+  const order = {
+    items: cart.map(c=>({ name:c.name, qty:c.qty, price:c.price })),
+    total: cart.reduce((a,b)=>a+b.price*b.qty,0),
+    timestamp: new Date()
+  };
+  await addDoc(collection(db,"orders"), order);
+  printReceipt(order);
+  cart = [];
+  renderCart();
+});
+
+function printReceipt(order){
+  const w = window.open("");
+  w.document.write(`<html><head><title>Scontrino</title></head><body style="font-family:monospace;">`);
+  if(logoUrl) w.document.write(`<img src="${logoUrl}" style="max-width:80mm;"><br>`);
+  w.document.write(`<h3>Bar San Luigi Gonzaga</h3>`);
+  w.document.write(`<small>${new Date(order.timestamp).toLocaleString()}</small><hr>`);
+  order.items.forEach(it=>{
+    w.document.write(`${it.qty} x ${it.name} - €${(it.price*it.qty).toFixed(2)}<br>`);
+  });
+  w.document.write(`<hr><b>TOTALE: €${order.total.toFixed(2)}</b>`);
+  w.document.write(`</body></html>`);
+  w.print();
+}
+
+/* ===================== HISTORY ===================== */
+document.getElementById("load-history-btn").addEventListener("click", async ()=>{
+  const dateVal = document.getElementById("history-date").value;
+  if(!dateVal) return alert("Seleziona una data");
+  const start = new Date(dateVal+"T00:00:00");
+  const end = new Date(dateVal+"T23:59:59");
+  const q = query(collection(db,"orders"));
+  const snap = await getDocs(q);
+  const counts = {};
+  let total = 0;
+  snap.forEach(docu=>{
+    const data = docu.data();
+    const ts = new Date(data.timestamp.seconds*1000);
+    if(ts>=start && ts<=end){
+      data.items.forEach(it=>{
+        counts[it.name] = (counts[it.name]||0) + it.qty;
+        total += it.price * it.qty;
+      });
     }
-};
-
-document.getElementById("print-send").addEventListener("click", async () => {
-    if (!cart.length) return;
-    const win = window.open("", "PRINT", "height=400,width=600");
-    const logoUrl = document.getElementById("bar-logo").src;
-    win.document.write(`<html><body style="font-family:monospace; width:80mm">
-                        <img src="${logoUrl}" style="max-width:80mm"><h2>Bar San Luigi</h2>
-                        <p>${new Date().toLocaleString()}</p><hr>`);
-    cart.forEach(item => {
-        win.document.write(`<p>${item.name} x${item.qty} - € ${(item.price * item.qty).toFixed(2)}</p>`);
-    });
-    win.document.write(`<hr><h3>TOTALE: € ${document.getElementById("cart-total").textContent}</h3></body></html>`);
-    win.document.close();
-    win.print();
-
-    await addDoc(collection(db, "orders"), {
-        date: new Date().toISOString(),
-        items: cart.map(c => ({ name: c.name, qty: c.qty, price: c.price }))
-    });
-    cart = [];
-    renderCart();
+  });
+  const tbody = document.querySelector("#history-table tbody");
+  tbody.innerHTML = "";
+  Object.keys(counts).forEach(name=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${name}</td><td>${counts[name]}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("history-total").textContent = "€ "+total.toFixed(2);
 });
 
-/* =======================
-   STORICO ORDINI
-   ======================= */
-document.getElementById("load-history-btn").addEventListener("click", async () => {
-    const dateSel = document.getElementById("history-date").value;
-    if (!dateSel) return;
-    const snap = await getDocs(collection(db, "orders"));
-    const rows = {};
-    let total = 0;
-    snap.forEach(docSnap => {
-        const order = docSnap.data();
-        if (order.date.startsWith(dateSel)) {
-            order.items.forEach(it => {
-                rows[it.name] = (rows[it.name] || 0) + it.qty;
-                total += it.qty * it.price;
-            });
-        }
-    });
-    const tbody = document.querySelector("#history-table tbody");
-    tbody.innerHTML = "";
-    Object.entries(rows).forEach(([name, qty]) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${name}</td><td>${qty}</td>`;
-        tbody.appendChild(tr);
-    });
-    document.getElementById("history-total").textContent = `€ ${total.toFixed(2)}`;
+/* EXPORT CSV */
+document.getElementById("export-csv-btn").addEventListener("click", ()=>{
+  let csv = "Prodotto,Quantità\n";
+  document.querySelectorAll("#history-table tbody tr").forEach(tr=>{
+    const cols = tr.querySelectorAll("td");
+    csv += `${cols[0].textContent},${cols[1].textContent}\n`;
+  });
+  const blob = new Blob([csv],{type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "storico.csv";
+  a.click();
 });
 
-document.getElementById("export-csv-btn").addEventListener("click", () => {
-    const rows = [["Prodotto", "Quantità"]];
-    document.querySelectorAll("#history-table tbody tr").forEach(tr => {
-        const cells = Array.from(tr.querySelectorAll("td")).map(td => td.textContent);
-        rows.push(cells);
-    });
-    let csvContent = rows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "storico.csv";
-    link.click();
+/* ===================== LOGIN SETTINGS ===================== */
+document.getElementById("login-btn").addEventListener("click", ()=>{
+  if(document.getElementById("settings-password").value==="admin"){
+    document.getElementById("login-section").style.display="none";
+    document.getElementById("settings-content").style.display="block";
+  } else {
+    alert("Password errata");
+  }
 });
 
-/* Carica logo all'avvio */
+/* ===================== INIT ===================== */
 loadLogo();
+loadCategories();
+loadProducts();
+
 </script>
 </body>
 </html>
