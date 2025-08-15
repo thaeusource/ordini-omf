@@ -61,8 +61,8 @@
 </head>
 <body>
   <header>
-    <img id="barLogo" alt="Logo Bar San Luigi" />
-    <h1>Bar San Luigi</h1>
+    <img id="barLogo" alt="Logo San Luigi" src="https://raw.githubusercontent.com/giovannigrimoldi93-glitch/bar-sl-files/refs/heads/main/Logo-parrocchia-2.svg" />
+    <h1>San Luigi</h1>
   </header>
 
   <nav>
@@ -125,14 +125,7 @@
         </div>
         <ul id="productsList"></ul>
       </div>
-
-      <div class="panel">
-        <h2>Logo</h2>
-        <div class="actions">
-          <input id="logoUpload" type="file" accept="image/*" />
-          <button id="clearLogoBtn" class="btn-ghost">Rimuovi logo</button>
-        </div>
-      </div>
+      
     </div>
   </section>
 
@@ -190,35 +183,6 @@
       return (ca?.order||0) - (cb?.order||0) || a.name.localeCompare(b.name);
     };
     const euros = v => (Number(v)||0).toFixed(2);
-
-    // ---- Logo
-    async function loadLogo() {
-      try {
-        const snap = await getDoc(doc(db, "config", "logo"));
-        const url = snap.exists() ? snap.data().url : null;
-        if (url) document.getElementById("barLogo").src = url;
-      } catch (e) { console.error(e); }
-    }
-    document.getElementById("logoUpload").onchange = async (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      try {
-        const refPath = storageRef(storage, "logos/barLogo.jpg");
-        await uploadBytes(refPath, f);
-        const url = await getDownloadURL(refPath);
-        await setDoc(doc(db,"config","logo"), { url });
-        document.getElementById("barLogo").src = url;
-        alert("Logo caricato.");
-      } catch(err){ console.error(err); alert("Errore upload logo."); }
-    };
-    document.getElementById("clearLogoBtn").onclick = async ()=>{
-      try {
-        const refPath = storageRef(storage, "logos/barLogo.jpg");
-        await deleteObject(refPath);
-        await setDoc(doc(db,"config","logo"), { url: null });
-        document.getElementById("barLogo").src = "";
-        alert("Logo rimosso.");
-      } catch(err){ console.error(err); alert("Errore rimozione logo."); }
-    };
 
     // ---- Categorie (CRUD)
     async function loadCategories() {
