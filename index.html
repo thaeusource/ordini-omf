@@ -357,9 +357,7 @@
           <td>${it.name}</td>
           <td>${it.qty}</td>
           <td>€ ${euros(it.price * it.qty)}</td>
-          <td><button class="rmv btn-ghost" onclick="removeFromCart(${idx})">
-          <img src="https://raw.githubusercontent.com/giovannigrimoldi93-glitch/bar-sl-files/refs/heads/main/IMG_1206.png" alt="-">
-          </button></td>`;
+          <td><button class="rmv btn-ghost" onclick="removeFromCart(${idx})">-</button></td>`;
         tbody.appendChild(tr);
       });
       document.getElementById("totalPrice").textContent = euros(total);
