@@ -1,0 +1,361 @@
+import {
+  initializeApp, getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
+  deleteDoc, updateDoc, query, where, orderBy, runTransaction, increment, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBUZmWrO6IfQHdbk3r9TvVhQxkBSoh1rTI",
+  authDomain: "ordini-omf-34a62.firebaseapp.com",
+  projectId: "ordini-omf-34a62",
+  storageBucket: "ordini-omf-34a62.firebasestorage.app",
+  messagingSenderId: "7882970395",
+  appId: "1:7882970395:web:4198eba70b1e9c505fafbe",
+  measurementId: "G-FYNYX6NP4L"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// ---- Stato
+let categories = [];   // {id,name,color,order}
+let products = [];     // {id,name,price,qty,categoryId,enabled}
+let cart = [];
+
+// ---- Utils
+const byCatOrder = (a,b) => {
+  const ca = categories.find(c=>c.id===a.categoryId);
+  const cb = categories.find(c=>c.id===b.categoryId);
+  return (ca?.order||0) - (cb?.order||0) || a.name.localeCompare(b.name);
+};
+const euros = v => (Number(v)||0).toFixed(2);
+
+// ---- Categorie (CRUD)
+async function loadCategories() {
+  const qy = query(collection(db,"categories"), orderBy("order","asc"));
+  const snap = await getDocs(qy);
+  categories = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  renderCategoriesSettings();
+  renderCategoryOptions();
+}
+function renderCategoriesSettings() {
+  const ul = document.getElementById("categoriesList");
+  ul.innerHTML = "";
+  categories.forEach(c=>{
+    const li = document.createElement("li");
+    li.className = "item";
+    li.innerHTML = `
+      <div><b style="color:${c.color}">${c.name}</b> <span class="tag">ordine ${c.order||0}</span></div>
+      <div class="actions">
+        <button class="btn-ghost" onclick="editCategory('${c.id}')">Modifica</button>
+        <button class="btn-ghost" onclick="deleteCategory('${c.id}')">Elimina</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+function renderCategoryOptions() {
+  const sel = document.getElementById("prodCategory");
+  sel.innerHTML = "";
+  categories.forEach(c=>{
+    const opt = document.createElement("option");
+    opt.value = c.id; opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+}
+document.getElementById("addCategory").onclick = async ()=>{
+  const name = document.getElementById("catName").value.trim();
+  const color = document.getElementById("catColor").value;
+  const order = parseInt(document.getElementById("catOrder").value)||0;
+  if(!name){ alert("Inserisci un nome categoria."); return; }
+  await addDoc(collection(db,"categories"), {name,color,order});
+  document.getElementById("catName").value="";
+  document.getElementById("catOrder").value="";
+  await loadCategories(); renderProductsHome();
+};
+window.editCategory = async (id)=>{
+  const c = categories.find(x=>x.id===id); if(!c) return;
+  const name = prompt("Nome categoria:", c.name); if(!name) return;
+  const color = prompt("Colore HEX (#...):", c.color)||c.color;
+  const order = parseInt(prompt("Ordine di esposizione:", c.order))||0;
+  await updateDoc(doc(db,"categories",id), {name,color,order});
+  await loadCategories(); renderProductsHome();
+};
+window.deleteCategory = async (id)=>{
+  if(!confirm("Eliminare la categoria? I prodotti resteranno ma senza colore/ordine.")) return;
+  await deleteDoc(doc(db,"categories",id));
+  await loadCategories(); renderProductsHome();
+};
+
+// ---- Prodotti (CRUD + toggle)
+async function loadProducts() {
+  const snap = await getDocs(collection(db,"products"));
+  products = snap.docs.map(d=>{
+    const data = d.data();
+    return { id:d.id, enabled: data.enabled!==false, ...data };
+  });
+  renderProductsSettings();
+}
+function renderProductsSettings() {
+  const ul = document.getElementById("productsList");
+  ul.innerHTML = "";
+  // Mostra per categoria per ordine
+  const sorted = [...products].sort(byCatOrder);
+  sorted.forEach(p=>{
+    const cat = categories.find(c=>c.id===p.categoryId);
+    const li = document.createElement("li");
+    li.className = "item";
+    const qtyStr = (p.qty===null || p.qty===undefined) ? "∞" : p.qty;
+    li.innerHTML = `
+      <div>
+        <b>${p.name}</b> <span class="muted">€${euros(p.price)}</span>
+        <span class="tag">${cat ? cat.name : "Senza categoria"}</span>
+        <span class="tag">Qtà: ${qtyStr}</span>
+        <span class="tag">${p.enabled ? "Attivo ✅" : "Disattivo 🚫"}</span>
+      </div>
+      <div class="actions">
+        <button class="btn-ghost" onclick="editProduct('${p.id}')">Modifica</button>
+        <button class="btn-ghost" onclick="toggleProduct('${p.id}')">${p.enabled?"Disattiva":"Attiva"}</button>
+        <button class="btn-ghost" onclick="deleteProduct('${p.id}')">Elimina</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+function renderProductsHome() {
+  const container = document.getElementById("productsContainer");
+  container.innerHTML = "";
+  // Itera le categorie in ordine e per ciascuna butta i prodotti abilitati
+  categories.forEach(cat=>{
+    const prods = products
+      .filter(p=>p.categoryId===cat.id && p.enabled)
+      .sort((a,b)=> a.name.localeCompare(b.name));
+    prods.forEach(p=>{
+      const btn = document.createElement("button");
+      btn.className = "prod-btn";
+      btn.style.background = cat.color || "#777";
+      const qtyStr = (p.qty===null || p.qty===undefined) ? "" : `<span class="prod-caption">Rimanenti: ${p.qty}</span>`;
+      btn.innerHTML = `${p.name}${qtyStr}`;
+      btn.onclick = ()=> addToCart(p);
+      container.appendChild(btn);
+    });
+  });
+}
+document.getElementById("addProduct").onclick = async ()=>{
+  const name = document.getElementById("prodName").value.trim();
+  const price = parseFloat(document.getElementById("prodPrice").value);
+  const qtyRaw = document.getElementById("prodQty").value;
+  const qty = (qtyRaw==="" ? null : parseInt(qtyRaw));
+  const categoryId = document.getElementById("prodCategory").value;
+  const enabled = document.getElementById("prodEnabled").checked;
+  if(!name || isNaN(price)){ alert("Nome e prezzo sono obbligatori."); return; }
+  await addDoc(collection(db,"products"), { name, price, qty, categoryId, enabled });
+  document.getElementById("prodName").value = "";
+  document.getElementById("prodPrice").value = "";
+  document.getElementById("prodQty").value = "";
+  document.getElementById("prodEnabled").checked = true;
+  await loadProducts(); renderProductsHome();
+};
+window.editProduct = async (id)=>{
+  const p = products.find(x=>x.id===id); if(!p) return;
+  const name = prompt("Nome prodotto:", p.name); if(!name) return;
+  const price = parseFloat(prompt("Prezzo:", p.price)); if(isNaN(price)) return;
+  const qtyPrompt = prompt("Quantità (vuoto=illimitata):", (p.qty ?? "").toString());
+  const qty = (qtyPrompt==="" ? null : parseInt(qtyPrompt));
+  // cambio categoria via select testuale: mostra elenco id->nome
+  const catList = categories.map(c=>`${c.id} = ${c.name}`).join("\n");
+  const categoryId = prompt("ID categoria (scegli tra):\n"+catList, p.categoryId) || p.categoryId;
+  await updateDoc(doc(db,"products",id), { name, price, qty, categoryId });
+  await loadProducts(); renderProductsHome();
+};
+window.toggleProduct = async (id)=>{
+  const p = products.find(x=>x.id===id); if(!p) return;
+  await updateDoc(doc(db,"products",id), { enabled: !p.enabled });
+  await loadProducts(); renderProductsHome();
+};
+window.deleteProduct = async (id)=>{
+  if(!confirm("Eliminare questo prodotto?")) return;
+  await deleteDoc(doc(db,"products",id));
+  await loadProducts(); renderProductsHome();
+};
+
+// ---- Carrello
+function inCartQty(productId) {
+  return cart.filter(i=>i.id===productId).reduce((s,i)=>s+i.qty,0);
+}
+function addToCart(prod) {
+  // rispetta la giacenza se definita
+  if (prod.qty !== null && prod.qty !== undefined) {
+    const already = inCartQty(prod.id);
+    if (already + 1 > prod.qty) { alert("Giacenza insufficiente."); return; }
+  }
+  const found = cart.find(i=>i.id===prod.id);
+  if(found) found.qty++; else cart.push({ id:prod.id, name:prod.name, price:prod.price, qty:1 });
+  renderCart();
+}
+function renderCart() {
+  const tbody = document.getElementById("cartBody");
+  tbody.innerHTML = "";
+  let total = 0;
+  cart.forEach((it,idx)=>{
+    total += it.price * it.qty;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td>${it.qty}</td>
+      <td>€ ${euros(it.price * it.qty)}</td>
+      <td><button class="rmv btn-ghost" onclick="removeFromCart(${idx})">
+<img src="https://raw.githubusercontent.com/giovannigrimoldi93-glitch/bar-sl-files/refs/heads/main/IMG_1206.png" alt="Rimuovi" width="20" height="20">
+      </button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("totalPrice").textContent = euros(total);
+}
+window.removeFromCart = (idx)=>{
+  cart[idx].qty--;
+  if (cart[idx].qty <= 0) cart.splice(idx,1);
+  renderCart();
+};
+
+// ---- Numero progressivo
+async function nextOrderNumber() {
+  const ref = doc(db,"counters","orders");
+  const orderNo = await runTransaction(db, async (tx)=>{
+    const snap = await tx.get(ref);
+    if(!snap.exists()) {
+      tx.set(ref, { seq: 1 });
+      return 1;
+    } else {
+      const next = (snap.data().seq||0) + 1;
+      tx.update(ref, { seq: next });
+      return next;
+    }
+  });
+  return orderNo;
+}
+
+// ---- Stampa + Salvataggio ordine + Scarico magazzino
+document.getElementById("printAndSend").onclick = async ()=>{
+  if(cart.length===0){ alert("Carrello vuoto."); return; }
+  // determina numero progressivo
+  const orderNo = await nextOrderNumber();
+  const order = {
+    number: orderNo,
+    date: serverTimestamp(),
+    items: cart.map(c=>({ name:c.name, qty:c.qty, price:c.price })),
+    total: cart.reduce((s,c)=>s + c.price*c.qty, 0)
+  };
+
+  // PREPARA STAMPA
+  const logoSrc = document.getElementById("barLogo").src || "";
+  const dt = new Date().toLocaleString();
+  let html = `
+    <div style="width:80mm;font-family:monospace;">
+      <div style="text-align:center">
+        ${logoSrc ? `<img src="${logoSrc}" style="max-width:60mm;max-height:40mm" />` : ""}
+        <h2 style="margin:6px 0">Bar San Luigi</h2>
+        <div>${dt}</div>
+        <div>Ordine #${orderNo}</div>
+      </div>
+      <hr/>
+  `;
+  order.items.forEach(it=>{
+    html += `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${it.qty} x ${it.name}</span>
+        <span>€ ${euros(it.price*it.qty)}</span>
+      </div>`;
+  });
+  html += `<hr/><div style="text-align:right;font-weight:bold">TOTALE: € ${euros(order.total)}</div></div>`;
+
+  const w = window.open("", "PRINT", "width=420,height=640");
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+
+  // SALVA ORDINE
+  await addDoc(collection(db,"orders"), order);
+
+  // SCALA MAGAZZINO SE SERVE
+  // (usa increment negativo)
+  for (const line of cart) {
+    const prod = products.find(p=>p.id===line.id);
+    if (prod && prod.qty !== null && prod.qty !== undefined) {
+      const ref = doc(db,"products", prod.id);
+      await updateDoc(ref, { qty: increment(-line.qty) });
+    }
+  }
+
+  // Pulisci cart e ricarica prodotti (così si aggiornano le giacenze visibili)
+  cart = [];
+  renderCart();
+  await loadProducts();
+  renderProductsHome();
+};
+
+// ---- Storico
+document.getElementById("loadHistory").onclick = async ()=>{
+  const dateStr = document.getElementById("historyDate").value;
+  if(!dateStr){ alert("Seleziona una data."); return; }
+  const start = new Date(dateStr+"T00:00:00");
+  const end   = new Date(dateStr+"T23:59:59");
+  const qy = query(collection(db,"orders"), where("date", ">=", start), where("date","<=", end));
+  const snap = await getDocs(qy);
+  const summary = {};
+  let total = 0;
+  snap.forEach(d=>{
+    const o = d.data();
+    (o.items||[]).forEach(it=>{
+      summary[it.name] = (summary[it.name]||0) + (it.qty||0);
+      total += (it.price||0) * (it.qty||0);
+    });
+  });
+  const tbody = document.querySelector("#historyTable tbody");
+  tbody.innerHTML = "";
+  Object.entries(summary).forEach(([name,qty])=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${name}</td><td>${qty}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("historyTotal").textContent = euros(total);
+};
+
+document.getElementById("exportCSV").onclick = ()=>{
+  const rows = [["Prodotto","Quantità"]];
+  document.querySelectorAll("#historyTable tbody tr").forEach(tr=>{
+    const tds = tr.querySelectorAll("td");
+    rows.push([tds[0].textContent, tds[1].textContent]);
+  });
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "storico.csv"; a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ---- Login Impostazioni
+document.getElementById("loginBtn").onclick = ()=>{
+  if (document.getElementById("settingsPassword").value === "admin") {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("settingsContent").style.display = "block";
+  } else { alert("Password errata"); }
+};
+
+// ---- Navigazione
+document.querySelectorAll("nav button").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(btn.dataset.page).classList.add("active");
+  };
+});
+
+// ---- Init: carica tutto & poi render Home
+await Promise.all([loadCategories(), loadProducts()]);
+renderProductsHome();
